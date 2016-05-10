@@ -1,0 +1,27 @@
+{
+  "name": "surfer",
+  "version": "0.0.1",
+  "description": "A command-line toolkit for parsing user data.",
+  "main": "surfer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "getdata": "./getdata.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ethanlook/surfer.git"
+  },
+  "author": "Ethan Look",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ethanlook/surfer/issues"
+  },
+  "homepage": "https://github.com/ethanlook/surfer#readme",
+  "dependencies": {
+    "co": "^4.6.0",
+    "co-prompt": "^1.0.0",
+    "commander": "^2.9.0"
+  }
+}
