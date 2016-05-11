@@ -6,7 +6,7 @@ getusers
 *For a user email, retrieve the user emails that have shared data with this email.*
 ```
 usage: getusers [options] <email>
-	  <email>    : user email that is shared with
+	  <email>        : user email that is shared with
 	  -o, --output   : /path/to/output.json (optional; default is stdout)
 	  --version
 	  --help
