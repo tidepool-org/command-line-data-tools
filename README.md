@@ -16,14 +16,14 @@ getdata
 -------
 *For a user email, retrieve the json data for that user.*
 ```
-usage: getdata
-	  authemail      : user email for authentication
-	  useremail      : user email for data request
+usage: getdata [options] <authemail> <useremail>
+	  <authemail>    : user email for authentication
+	  <useremail>    : user email for data request
 	  -t, --types    : list of strings of data types (optional; default is all types)
 	  				   e.g. cbg,bolus
 	  -o, --output   : /path/to/output.json (optional; default is stdout)
-	  --version
-	  --help
+	  -V, --version
+	  -h, --help
 ```
 
 filterdata
