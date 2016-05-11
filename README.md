@@ -17,12 +17,11 @@ getdata
 *For a user email, retrieve the json data for that user.*
 ```
 usage: getdata
-	  data_email: user email with data of interest
-	  user_email: user email making request
-	  -types    : list of strings of data types (optional; default is all types)
-	  -start    : start date (optional; default is beginning of time)
-	  -end      : end date (optional; default is current date)
-	  -o        : /path/to/output.json (optional; default is stdout)
+	  authemail      : user email for authentication
+	  useremail      : user email for data request
+	  -t, --types    : list of strings of data types (optional; default is all types)
+	  				   e.g. cbg,bolus
+	  -o, --output   : /path/to/output.json (optional; default is stdout)
 	  --version
 	  --help
 ```
