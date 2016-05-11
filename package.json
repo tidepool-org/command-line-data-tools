@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
-    "getdata": "./getdata.js"
+    "getdata": "./getdata.js",
+    "getusers": "./getusers.js"
   },
   "repository": {
     "type": "git",

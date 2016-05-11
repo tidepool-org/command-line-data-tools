@@ -24,33 +24,27 @@ program
 			request.post({url: url},
 				function(error, response, body) {
 
-					if (error || response.statusCode != 200) {
-						console.error(chalk.red('An error occured with login request. ' 
-							+ 'Bad username/password?'));
-						process.exit(1);
-					}
+					exitOnError(error, response.statusCode, 
+						'An error occured with login request. ' 
+							+ 'Bad username/password?');
+
+					console.log(chalk.green.bold('Successful login.'));
 
 					var req = makeDataQueryRequest(
 											useremail, 
 											program.types,
-											response.headers['x-tidepool-session-token']);
+											response
+												.headers['x-tidepool-session-token']);
 					
-					var outstream;
-					if (program.output) { 
-						outstream = fs.createWriteStream(program.output); 
-					}
-					else { 
-						outstream = process.stdout; 
-					}
+					var outstream = makeOutstream(program.output);
 
 					request.post(req, function(error, response, body) {
 
-						if (error || response.statusCode != 200) {
-							console.error(chalk.red('An error occured with data request. '
-								+ 'Incorrect email for data?'));
-							process.exit(1);
-						}
+						exitOnError(error, response.statusCode, 
+							'An error occured with data request. '
+							+ 'Incorrect email for data?');
 
+						console.log(chalk.green.bold('Successful data request.'));
 					}).pipe(outstream);
 
 			});
@@ -66,19 +60,38 @@ function list(val) {
 		.join(', ');
 }
 
-function makeLoginRequestUrl(authemail, password) {
-	return 'https://' + authemail + ':' + password +
+function makeOutstream(output) {
+	var outstream;
+	if (output) { 
+		outstream = fs.createWriteStream(program.output); 
+	}
+	else { 
+		outstream = process.stdout; 
+	}
+	return outstream;
+}
+
+function exitOnError(error, statusCode, message) {
+	if (error || statusCode != 200) {
+		console.error(chalk.red.bold(message));
+		process.exit(1);
+	}
+}
+
+function makeLoginRequestUrl(email, password) {
+	return 'https://' + email + ':' + password +
 		    	'@api.tidepool.org/auth/login';
 }
 
 function makeDataQueryRequest(email, types, session_token) {
 	var reqBody = 'METAQUERY WHERE emails CONTAINS ' + email
-					+ ' QUERY TYPE IN ' + types;
-	// Possible types: 
-	//		basal, bolus, cbg, 
-	//		cgmSettings, deviceEvent, 
-	//		deviceMeta, pumpSettings, 
-	//		settings, smbg
+					+ ' QUERY TYPE IN ';
+	if (types) {
+		reqBody += types;
+	} else {
+		reqBody += 'basal, bolus, cbg, cgmSettings, deviceEvent, ' +
+					'deviceMeta, pumpSettings, settings, smbg';
+	}
 
 	return req = {
 		url: 'https://api.tidepool.org/query/data',
