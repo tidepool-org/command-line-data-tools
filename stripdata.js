@@ -4,6 +4,7 @@ var program = require('commander');
 var fs = require('fs');
 var chalk = require('chalk');
 var JSONStream = require('JSONStream');
+var crypto = require('crypto');
 
 program
     .version('0.0.1')
@@ -13,9 +14,9 @@ program
     	'Strip model name for these models. e.g. Anonymous Pump', list)
     .option('--stripSNs <stripSNs>', 
     	'Strip serial number for these models.', list)
-    .option('--leaveModels <leaveModel>', 
+    .option('--leaveModels <leaveModels>', 
     	'Leave model for these models. Takes precedence over strip.', list)
-    .option('--leaveSNs <leaveSN>', 
+    .option('--leaveSNs <leaveSNs>', 
     	'Leave serial number for these models. Takes precedence over strip.', list)
     .option('--stripAll <stripAll>', 
     	'Strip all of the data, except for what is explicitly left.', false)
@@ -27,6 +28,8 @@ program
     	'Remove all data types, except for what is explicitly left.', false)
     .option('--hashIDs <hashIDs>',
     	'Pass IDs (such as _groupid and uploadId) through a one-way hash.', false)
+    .option('--removeSource <removeSource>',
+    	'Remove the source of the data, e.g. carelink.', false)
     .parse(process.argv);
 
 checkOptions();
@@ -44,7 +47,7 @@ ifs
 	.on('data', function (data) {
 	    var allClean = [];
 	    for (var i in data) {
-		    if ((program.removeAll 
+		    if ((program.removeAll
 		    	|| program.removeTypes
 		    		.indexOf(data[i].type) >= 0)
 		    	&& program.leaveTypes
@@ -55,6 +58,44 @@ ifs
 
 		    var cleanData = data[i];
 
+		    var deviceId = splitDeviceId(data[i].deviceId);
+		    var deviceComp = deviceId[0];
+
+		    if ((program.stripAll
+		    	|| program.stripModels
+		    		.indexOf(deviceComp) >= 0)
+		    	&& program.leaveModels
+		    		.indexOf(deviceComp) < 0) {
+		    	deviceId[0]=cleanData.type + ' device';
+		    }
+
+		    if ((program.stripAll
+		    	|| program.stripSNs
+		    		.indexOf(deviceComp) >= 0)
+		    	&& program.leaveSNs
+		    		.indexOf(deviceComp) < 0) {
+		    	deviceId[1]='Serial Number';
+		    }
+
+		    cleanData.deviceId = deviceId.join('-');
+
+		    if (program.hashIDs) {
+		    	cleanData.hash_groupId = 
+		    		crypto.createHash('sha256')
+		    			.update(cleanData._groupId.toString())
+		    			.digest('hex');
+		    	delete cleanData._groupId;
+		    	cleanData.hash_uploadId = 
+		    		crypto.createHash('sha256')
+		    			.update(cleanData.uploadId.toString())
+		    			.digest('hex');
+		    	delete cleanData.uploadId;
+		    }
+
+		    if (program.removeSource) {
+		    	delete cleanData.source;
+		    }
+
 		    allClean.push(JSON.stringify(cleanData));
 	    }
 	    var cleanStr = '[' + allClean.join(',') + ']\n';
@@ -62,7 +103,7 @@ ifs
 	    writeToOutstream(ofs, cleanStr);
 	})
 	.on('end', function() {
-		console.log(chalk.blue.bold('Done writing to output.'));
+		console.log(chalk.yellow.bold('Done writing to output.'));
 	});
 
 
@@ -71,13 +112,38 @@ function list(val) {
 		.split(',');
 }
 
+function splitDeviceId(deviceId) {
+	var retlist=deviceId.split('-');
+	if (retlist.length === 1) {
+		// Probably split by '_'
+		retlist=deviceId.split('_');
+	} else if (retlist.length > 2) {
+		// Split into more than two pieces
+		var model=retlist.slice(0,-1).join('-');
+		var serial=retlist[retlist.length-1];
+		retlist=[];
+		retlist.push(model);
+		retlist.push(serial);
+	}
+	// Index 0 has model, 1 has serial
+	return retlist;
+}
+
 function checkOptions() {
+	if (program.stripAll === 'true') {program.stripAll = true;}
+	if (program.stripAll === 'false') {program.stripAll = false;}
+	if (program.removeAll === 'true') {program.removeAll = true;}
+	if (program.removeAll === 'false') {program.removeAll = false;}
 	if (!program.stripModels) {program.stripModels = [];}
 	if (!program.stripSNs) {program.stripSNs = [];}
 	if (!program.leaveModels) {program.leaveModels = [];}
-	if (!program.leaveSN) {program.leaveSNs = [];}
+	if (!program.leaveSNs) {program.leaveSNs = [];}
 	if (!program.removeTypes) {program.removeTypes = [];}
 	if (!program.leaveTypes) {program.leaveTypes = [];}
+	if (program.hashIDs === 'true') {program.hashIDs = true;}
+	if (program.hashIDs === 'false') {program.hashIDs = false;}
+	if (program.removeSource === 'true') {program.removeSource = true;}
+	if (program.removeSource === 'false') {program.removeSource = false;}
 }
 
 function printOptions() {
@@ -92,6 +158,7 @@ function printOptions() {
 	console.log(chalk.blue.bold('leaveTypes: ') + program.leaveTypes);
 	console.log(chalk.blue.bold('removeAll: ') + program.removeAll);
 	console.log(chalk.blue.bold('hashIDs: ') + program.hashIDs);
+	console.log(chalk.blue.bold('removeSource: ') + program.removeSource);
 }
 
 function makeInFileStream() {
@@ -121,9 +188,3 @@ function writeToOutstream(ofs, info) {
 		console.log(info);
 	}
 }
-
-/*
-option -- get rid of device id entirely, replace with anonymous
-_groupid -- one-way hash
-uploadId -- one-way hash
-*/
