@@ -7,9 +7,9 @@
     "test": "test/tests.sh"
   },
   "bin": {
-    "getdata": "./getdata.js",
-    "getusers": "./getusers.js",
-    "stripdata": "./stripdata.js"
+    "getdata": "./bin/getdata.js",
+    "getusers": "./bin/getusers.js",
+    "stripdata": "./bin/stripdata.js"
   },
   "dependencies": {
     "JSONStream": "^1.1.1",
