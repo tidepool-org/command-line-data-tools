@@ -5,25 +5,27 @@ getusers
 --------
 *For a user email, retrieve the user emails that have shared data with this email.*
 ```
-usage: getusers [options] <email>
-	  <email>        : user email that is shared with
-	  -o, --output   : /path/to/output.json (optional; default is stdout)
-	  --version
-	  --help
+  Usage: getusers [options] <email>
+
+  Options:
+
+    -h, --help             output usage information
+    -V, --version          output the version number
+    -o, --output <output>  path/to/output.json
 ```
 
 getdata
 -------
 *For a user email, retrieve the json data for that user.*
 ```
-usage: getdata [options] <authemail> <useremail>
-	  <authemail>    : user email for authentication
-	  <useremail>    : user email for data request
-	  -t, --types    : list of strings of data types (optional; default is all types)
-	  				   e.g. cbg,bolus
-	  -o, --output   : /path/to/output.json (optional; default is stdout)
-	  -V, --version
-	  -h, --help
+  Usage: getdata [options] <authemail> <useremail>
+
+  Options:
+
+    -h, --help             output usage information
+    -V, --version          output the version number
+    -o, --output <output>  path/to/output.json
+    -t, --types <types>    list of strings of data types
 ```
 
 filterdata
@@ -52,9 +54,22 @@ stripdata
 ---------
 *Strip the json data of any patient information.*
 ```
-usage: stripdata
-	  -i        : /path/to/input.json (optional; default is stdin)
-	  -o        : /path/to/output.json (optional; default is stdout)
-	  --version
-	  --help
+  Usage: stripdata [options]
+
+  Options:
+
+    -h, --help                     output usage information
+    -V, --version                  output the version number
+    -i, --input <input>            path/to/input.json
+    -o, --output <output>          path/to/output.json
+    --stripModels <stripModels>    Strip model name for these models. e.g. Anonymous Pump
+    --stripSNs <stripSNs>          Strip serial number for these models.
+    --leaveModels <leaveModels>    Leave model for these models. Takes precedence over strip.
+    --leaveSNs <leaveSNs>          Leave serial number for these models. Takes precedence over strip.
+    --stripAll <stripAll>          Strip all of the data, except for what is explicitly left.
+    --removeTypes <removeTypes>    Remove these data types.
+    --leaveTypes <leaveTypes>      Leave these data types. Takes precedence over removal.
+    --removeAll <removeAll>        Remove all data types, except for what is explicitly left.
+    --hashIDs <hashIDs>            Pass IDs (such as _groupid and uploadId) through a one-way hash.
+    --removeSource <removeSource>  Remove the source of the data, e.g. carelink.
 ```

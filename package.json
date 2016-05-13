@@ -1,8 +1,8 @@
 {
-  "name": "surfer",
+  "name": "tidepool-command-line-data-tools",
   "version": "0.0.1",
   "description": "A command-line toolkit for parsing user data.",
-  "main": "surfer.js",
+  "main": "tidepool-command-line-data-tools.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -11,16 +11,6 @@
     "getusers": "./getusers.js",
     "stripdata": "./stripdata.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ethanlook/surfer.git"
-  },
-  "author": "Ethan Look",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/ethanlook/surfer/issues"
-  },
-  "homepage": "https://github.com/ethanlook/surfer#readme",
   "dependencies": {
     "JSONStream": "^1.1.1",
     "chalk": "^1.1.3",
