@@ -44,59 +44,29 @@ var ofs = makeOutstream();
 // Perform the parsing
 ifs
 	.pipe(jsonStream)
-	.on('data', function (data) {
+	.on('data', function (chunk) {
 	    var allClean = [];
-	    for (var i in data) {
+	    for (var i in chunk) {
 		    if ((program.removeAll
 		    	|| program.removeTypes
-		    		.indexOf(data[i].type) >= 0)
+		    		.indexOf(chunk[i].type) >= 0)
 		    	&& program.leaveTypes
-		    		.indexOf(data[i].type) < 0) {
+		    		.indexOf(chunk[i].type) < 0) {
 		    	// Do NOT add this event to output
 		    	continue;
 		    }
 
-		    var cleanData = data[i];
+		    // Make data into object so it is
+		    // passed by reference.
+		    var cleanData = {val: chunk[i]};
 
-		    var deviceId = splitDeviceId(data[i].deviceId);
-		    var deviceComp = deviceId[0];
+		    stripModelAndSNForData(cleanData);
 
-		    if ((program.stripAll
-		    	|| program.stripModels
-		    		.indexOf(deviceComp) >= 0)
-		    	&& program.leaveModels
-		    		.indexOf(deviceComp) < 0) {
-		    	deviceId[0]=cleanData.type + ' device';
-		    }
+		    hashIDsForData(cleanData);
 
-		    if ((program.stripAll
-		    	|| program.stripSNs
-		    		.indexOf(deviceComp) >= 0)
-		    	&& program.leaveSNs
-		    		.indexOf(deviceComp) < 0) {
-		    	deviceId[1]='Serial Number';
-		    }
+		    removeSourceForData(cleanData);
 
-		    cleanData.deviceId = deviceId.join('-');
-
-		    if (program.hashIDs) {
-		    	cleanData.hash_groupId = 
-		    		crypto.createHash('sha256')
-		    			.update(cleanData._groupId.toString())
-		    			.digest('hex');
-		    	delete cleanData._groupId;
-		    	cleanData.hash_uploadId = 
-		    		crypto.createHash('sha256')
-		    			.update(cleanData.uploadId.toString())
-		    			.digest('hex');
-		    	delete cleanData.uploadId;
-		    }
-
-		    if (program.removeSource) {
-		    	delete cleanData.source;
-		    }
-
-		    allClean.push(JSON.stringify(cleanData));
+		    allClean.push(JSON.stringify(cleanData.val));
 	    }
 	    var cleanStr = '[' + allClean.join(',') + ']\n';
 
@@ -127,6 +97,56 @@ function splitDeviceId(deviceId) {
 	}
 	// Index 0 has model, 1 has serial
 	return retlist;
+}
+
+// Because data is an object, this passes data
+// by reference.
+function stripModelAndSNForData(data) {
+	var deviceId = splitDeviceId(data.val.deviceId);
+    var deviceComp = deviceId[0];
+
+    if ((program.stripAll
+    	|| program.stripModels
+    		.indexOf(deviceComp) >= 0)
+    	&& program.leaveModels
+    		.indexOf(deviceComp) < 0) {
+    	deviceId[0]=data.val.type + ' device';
+    }
+
+    if ((program.stripAll
+    	|| program.stripSNs
+    		.indexOf(deviceComp) >= 0)
+    	&& program.leaveSNs
+    		.indexOf(deviceComp) < 0) {
+    	deviceId[1]='Serial Number';
+    }
+
+    data.val.deviceId = deviceId.join('-');
+}
+
+// Because data is an object, this passes data
+// by reference.
+function hashIDsForData(data) {
+	if (program.hashIDs) {
+    	data.val.hash_groupId = 
+    		crypto.createHash('sha256')
+    			.update(data.val._groupId.toString())
+    			.digest('hex');
+    	delete data.val._groupId;
+    	data.val.hash_uploadId = 
+    		crypto.createHash('sha256')
+    			.update(data.val.uploadId.toString())
+    			.digest('hex');
+    	delete data.val.uploadId;
+    }
+}
+
+// Because data is an object, this passes data
+// by reference.
+function removeSourceForData(data) {
+	if (program.removeSource) {
+    	delete data.val.source;
+    }
 }
 
 function checkOptions() {
