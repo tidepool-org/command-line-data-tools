@@ -17,31 +17,36 @@ program
     .option('-i, --input <input>', 'path/to/input.json')
     .option('-o, --output <output>', 'path/to/output.json')
     .option('--stripModels <stripModels>', 
-    	'Strip model name for these models. e.g. Anonymous Pump', list)
+    	'Strip model name for these models. e.g. Anonymous Pump', list, [])
     .option('--stripSNs <stripSNs>', 
-    	'Strip serial number for these models.', list)
+    	'Strip serial number for these models.', list, [])
     .option('--leaveModels <leaveModels>', 
-    	'Leave model for these models. Takes precedence over strip.', list)
+    	'Leave model for these models. Takes precedence over strip.', list, [])
     .option('--leaveSNs <leaveSNs>', 
-    	'Leave serial number for these models. Takes precedence over strip.', list)
-    .option('--stripAll <stripAll>', 
-    	'Strip all of the data, except for what is explicitly left.', false)
+    	'Leave serial number for these models. Takes precedence over strip.', list, [])
+    .option('--stripAll', 
+    	'Strip all of the data, except for what is explicitly left.')
     .option('--removeTypes <removeTypes>',
-    	'Remove these data types.', list)
+    	'Remove these data types.', list, [])
     .option('--leaveTypes <leaveTypes>',
-    	'Leave these data types. Takes precedence over removal.', list)
-    .option('--removeAll <removeAll>',
-    	'Remove all data types, except for what is explicitly left.', false)
-    .option('--hashIDs <hashIDs>',
-    	'Pass IDs (such as _groupid and uploadId) through a one-way hash.', false)
-    .option('--removeSource <removeSource>',
-    	'Remove the source of the data, e.g. carelink.', false)
+    	'Leave these data types. Takes precedence over removal.', list, [])
+    .option('--removeAll',
+    	'Remove all data types, except for what is explicitly left.')
+    .option('--hashIDs',
+    	'Pass IDs (such as _groupid and uploadId) through a one-way hash.')
+    .option('--removeSource',
+    	'Remove the source of the data, e.g. carelink.')
+    .option('-v, --verbose',
+    	'Verbose output.')
     .parse(process.argv);
 
 performDataStripping();
 
 function performDataStripping() {
 	checkOptions();
+	if (program.verbose) {
+		printOptions();
+	}
 
 	var ifs = makeInFileStream();
 
@@ -81,7 +86,9 @@ function performDataStripping() {
 		    writeToOutstream(ofs, cleanStr);
 		})
 		.on('end', function() {
-			console.log(chalk.yellow.bold('Done writing to output.'));
+			if (program.verbose) {
+				console.log(chalk.yellow.bold('Done writing to output.'));
+			}
 		});
 }
 
@@ -158,20 +165,11 @@ function removeSourceForData(data) {
 }
 
 function checkOptions() {
-	if (program.stripAll === 'true') {program.stripAll = true;}
-	if (program.stripAll === 'false') {program.stripAll = false;}
-	if (program.removeAll === 'true') {program.removeAll = true;}
-	if (program.removeAll === 'false') {program.removeAll = false;}
-	if (!program.stripModels) {program.stripModels = [];}
-	if (!program.stripSNs) {program.stripSNs = [];}
-	if (!program.leaveModels) {program.leaveModels = [];}
-	if (!program.leaveSNs) {program.leaveSNs = [];}
-	if (!program.removeTypes) {program.removeTypes = [];}
-	if (!program.leaveTypes) {program.leaveTypes = [];}
-	if (program.hashIDs === 'true') {program.hashIDs = true;}
-	if (program.hashIDs === 'false') {program.hashIDs = false;}
-	if (program.removeSource === 'true') {program.removeSource = true;}
-	if (program.removeSource === 'false') {program.removeSource = false;}
+	if (!program.stripAll) {program.stripAll = false;}
+	if (!program.removeAll) {program.removeAll = false;}
+	if (!program.hashIDs) {program.hashIDs = false;}
+	if (!program.removeSource) {program.removeSource = false;}
+	if (!program.verbose) {program.verbose = false;}
 }
 
 function printOptions() {
@@ -187,6 +185,7 @@ function printOptions() {
 	console.log(chalk.blue.bold('removeAll: ') + program.removeAll);
 	console.log(chalk.blue.bold('hashIDs: ') + program.hashIDs);
 	console.log(chalk.blue.bold('removeSource: ') + program.removeSource);
+	console.log(chalk.blue.bold('verbose: ') + program.verbose);
 }
 
 function makeInFileStream() {
