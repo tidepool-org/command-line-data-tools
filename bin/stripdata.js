@@ -7,9 +7,10 @@ var JSONStream = require('JSONStream');
 var crypto = require('crypto');
 
 exports.program = program;
+exports.performDataStripping = performDataStripping;
 exports.printOptions = printOptions;
 exports.splitDeviceId = splitDeviceId;
-exports.hashIDsForData;
+exports.hashIDsForData = hashIDsForData;
 
 program
     .version('0.0.1')
@@ -37,49 +38,52 @@ program
     	'Remove the source of the data, e.g. carelink.', false)
     .parse(process.argv);
 
-checkOptions();
+performDataStripping();
 
-var ifs = makeInFileStream();
+function performDataStripping() {
+	checkOptions();
 
-var jsonStream = JSONStream.parse();
+	var ifs = makeInFileStream();
 
-var ofs = makeOutstream();
+	var jsonStream = JSONStream.parse();
 
-// Perform the parsing
-ifs
-	.pipe(jsonStream)
-	.on('data', function (chunk) {
-	    var allClean = [];
-	    for (var i in chunk) {
-		    if ((program.removeAll
-		    	|| program.removeTypes
-		    		.indexOf(chunk[i].type) >= 0)
-		    	&& program.leaveTypes
-		    		.indexOf(chunk[i].type) < 0) {
-		    	// Do NOT add this event to output
-		    	continue;
+	var ofs = makeOutstream();
+
+	// Perform the parsing
+	ifs
+		.pipe(jsonStream)
+		.on('data', function (chunk) {
+		    var allClean = [];
+		    for (var i in chunk) {
+			    if ((program.removeAll
+			    	|| program.removeTypes
+			    		.indexOf(chunk[i].type) >= 0)
+			    	&& program.leaveTypes
+			    		.indexOf(chunk[i].type) < 0) {
+			    	// Do NOT add this event to output
+			    	continue;
+			    }
+
+			    // Make data into object so it is
+			    // passed by reference.
+			    var cleanData = {val: chunk[i]};
+
+			    stripModelAndSNForData(cleanData);
+
+			    hashIDsForData(cleanData);
+
+			    removeSourceForData(cleanData);
+
+			    allClean.push(JSON.stringify(cleanData.val));
 		    }
+		    var cleanStr = '[' + allClean.join(',') + ']\n';
 
-		    // Make data into object so it is
-		    // passed by reference.
-		    var cleanData = {val: chunk[i]};
-
-		    stripModelAndSNForData(cleanData);
-
-		    hashIDsForData(cleanData);
-
-		    removeSourceForData(cleanData);
-
-		    allClean.push(JSON.stringify(cleanData.val));
-	    }
-	    var cleanStr = '[' + allClean.join(',') + ']\n';
-
-	    writeToOutstream(ofs, cleanStr);
-	})
-	.on('end', function() {
-		console.log(chalk.yellow.bold('Done writing to output.'));
-	});
-
+		    writeToOutstream(ofs, cleanStr);
+		})
+		.on('end', function() {
+			console.log(chalk.yellow.bold('Done writing to output.'));
+		});
+}
 
 function list(val) {
 	return val

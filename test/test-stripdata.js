@@ -1,11 +1,12 @@
 var should = require('chai').should();
+var fs = require('fs');
 
 var stripdata = require('../bin/stripdata.js');
 
 describe('stripdata', function() {
 	
 	beforeEach(function() {
-
+		resetOptions();
 	});
 
 	describe('general functionality', function() {
@@ -53,8 +54,55 @@ describe('stripdata', function() {
 
 	describe('#hashIDsForData()', function() {
 	
-		it('should not hash Ids if option not selected');
-		it('should hash all Ids if option is selected');
+		it('should not hash Ids if option not selected', function() {
+			stripdata.program.hashIDs = false;
+			var data = readInputTestFile();
+			for (var i in data) {
+				var chunk = {val: data[i]};
+				var expectGroup = data[i]._groupId;
+				var expectUpload = data[i].uploadId;
+				stripdata.hashIDsForData(chunk);
+				should.exist(chunk.val._groupId);
+				should.not.exist(chunk.val.hash_groupId);
+				chunk.val._groupId.should.equal(expectGroup);
+				should.exist(chunk.val.uploadId);
+				should.not.exist(chunk.val.hash_uploadId);
+				chunk.val.uploadId.should.equal(expectUpload);				
+			}
+		});
+		it('should hash all Ids if option is selected', function() {
+			stripdata.program.hashIDs = true;
+			var data = readInputTestFile();
+			for (var i in data) {
+				var chunk = {val: data[i]};
+				var expectGroup = data[i]._groupId;
+				var expectUpload = data[i].uploadId;
+				stripdata.hashIDsForData(chunk);
+				should.not.exist(chunk.val._groupId);
+				should.exist(chunk.val.hash_groupId);
+				chunk.val.hash_groupId.should.not.equal(expectGroup);
+				should.not.exist(chunk.val.uploadId);
+				should.exist(chunk.val.hash_uploadId);
+				chunk.val.hash_uploadId.should.not.equal(expectUpload);
+			}
+		});
 	
 	});
 });
+
+function resetOptions() {
+	stripdata.program.stripModels = [];
+	stripdata.program.stripSNs = [];
+	stripdata.program.leaveModels = [];
+	stripdata.program.stripAll = false;
+	stripdata.program.removeTypes = [];
+	stripdata.program.leaveTypes = [];
+	stripdata.program.removeAll = false;
+	stripdata.program.hashIDs = false;
+	stripdata.program.removeSource = false;
+}
+
+function readInputTestFile() {
+	var input = fs.readFileSync('test/testdata.json', {encoding: 'utf8'});
+	return JSON.parse(input);
+}
