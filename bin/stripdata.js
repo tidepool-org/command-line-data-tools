@@ -6,6 +6,11 @@ var chalk = require('chalk');
 var JSONStream = require('JSONStream');
 var crypto = require('crypto');
 
+exports.program = program;
+exports.printOptions = printOptions;
+exports.splitDeviceId = splitDeviceId;
+exports.hashIDsForData;
+
 program
     .version('0.0.1')
     .option('-i, --input <input>', 'path/to/input.json')
@@ -33,7 +38,6 @@ program
     .parse(process.argv);
 
 checkOptions();
-printOptions();
 
 var ifs = makeInFileStream();
 
