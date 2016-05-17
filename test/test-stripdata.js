@@ -16,33 +16,75 @@ describe('stripdata', function() {
 
 			stripdata.performDataStripping(function() {
 				var outputData = readOutputTestFile();
-				inputData.should.not.deep.equal(outputData);
+				inputData.should.deep.equal(outputData);
 				deleteFilesCreated();
 
 				done();
 			});
 		});
 
-		// it('should remove the model name for a specific model', function() {
-		// 	var inputData = readInputTestFile();
+		it('should remove the model name for a specific model', function(done) {
+			var inputData = readInputTestFile();
 
-		// 	stripdata.program.stripModels = ['Model A'];
+			stripdata.program.stripModels = ['Model A'];
 
-		// 	stripdata.performDataStripping();
+			stripdata.performDataStripping(function() {
+				var outputData = readOutputTestFile();
 
-		// 	var outputData = readOutputTestFile();
+				outputData[0].deviceId.should.deep.equal('smbg device-456456');
+				outputData[1].deviceId.should.deep.equal('Model B-defdef');
+				outputData[2].deviceId.should.deep.equal('Model C-654654');
+				outputData[3].deviceId.should.deep.equal('basal device-cbacba');
+				outputData[4].deviceId.should.deep.equal('Model B-fedfed');
+				deleteFilesCreated();
 
-		// 	outputData[0].deviceId.should.deep.equal('smbg device-456456');
-		// 	outputData[1].deviceId.should.deep.equal('Model B-defdef');
-		// 	outputData[2].deviceId.should.deep.equal('Model C-654654');
-		// 	outputData[3].deviceId.should.deep.equal('basal device-cbacba');
-		// 	outputData[4].deviceId.should.deep.equal('Model B-fedfed');
-		//	deleteFilesCreated();
-		// });
+				done();
+			});
+		});
 
-		it('should remove the model for muliple specified models');
-		it('should remove the serial number for a given model');
-		it('should not remove the serial number for a different model');
+		it('should remove the model for muliple specified models', function(done) {
+			var inputData = readInputTestFile();
+
+			stripdata.program.stripModels = ['Model A', 'Model B'];
+
+			stripdata.performDataStripping(function() {
+				var outputData = readOutputTestFile();
+
+				outputData[0].deviceId.should.deep.equal('smbg device-456456');
+				outputData[1].deviceId.should.deep.equal('cbg device-defdef');
+				outputData[2].deviceId.should.deep.equal('Model C-654654');
+				outputData[3].deviceId.should.deep.equal('basal device-cbacba');
+				outputData[4].deviceId.should.deep.equal('deviceEvent device-fedfed');
+				deleteFilesCreated();
+
+				done();
+			});
+		});
+
+		it('should remove the serial number for a given model', function(done) {
+			var inputData = readInputTestFile();
+
+			stripdata.program.stripSNs = ['Model A'];
+
+			stripdata.performDataStripping(function() {
+				var outputData = readOutputTestFile();
+
+				outputData[0].deviceId.should.deep.equal('Model A-Serial Number');
+				outputData[1].deviceId.should.deep.equal('Model B-defdef');
+				outputData[2].deviceId.should.deep.equal('Model C-654654');
+				outputData[3].deviceId.should.deep.equal('Model A-Serial Number');
+				outputData[4].deviceId.should.deep.equal('Model B-fedfed');
+				deleteFilesCreated();
+
+				done();
+			});
+		});
+
+		it('should not remove the serial number for multiple specified models', function(done) {
+
+
+		});
+		
 		it('should strip all models and serial numbers');
 		it('should strip all models and serial numbers except the model for the given model');
 		it('should strip all models and serial numbers except the serial number for the given model');
