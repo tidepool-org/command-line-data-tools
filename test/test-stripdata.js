@@ -81,18 +81,235 @@ describe('stripdata', function() {
 		});
 
 		it('should not remove the serial number for multiple specified models', function(done) {
+			var inputData = readInputTestFile();
 
+			stripdata.program.stripSNs = ['Model A', 'Model B'];
 
+			stripdata.performDataStripping(function() {
+				var outputData = readOutputTestFile();
+
+				outputData[0].deviceId.should.deep.equal('Model A-Serial Number');
+				outputData[1].deviceId.should.deep.equal('Model B-Serial Number');
+				outputData[2].deviceId.should.deep.equal('Model C-654654');
+				outputData[3].deviceId.should.deep.equal('Model A-Serial Number');
+				outputData[4].deviceId.should.deep.equal('Model B-Serial Number');
+				deleteFilesCreated();
+
+				done();
+			});
 		});
-		
-		it('should strip all models and serial numbers');
-		it('should strip all models and serial numbers except the model for the given model');
-		it('should strip all models and serial numbers except the serial number for the given model');
-		it('should remove the given data type');
-		it('should remove all data types');
-		it('should remove all data types except for the given data type');
-		it('should hash all of the ID types');
-		it('should remove the source field');
+
+		it('should remove the model and serial number for the specified model', function(done) {
+			var inputData = readInputTestFile();
+
+			stripdata.program.stripModels = ['Model A'];
+			stripdata.program.stripSNs = ['Model A'];
+
+			stripdata.performDataStripping(function() {
+				var outputData = readOutputTestFile();
+
+				outputData[0].deviceId.should.deep.equal('smbg device-Serial Number');
+				outputData[1].deviceId.should.deep.equal('Model B-defdef');
+				outputData[2].deviceId.should.deep.equal('Model C-654654');
+				outputData[3].deviceId.should.deep.equal('basal device-Serial Number');
+				outputData[4].deviceId.should.deep.equal('Model B-fedfed');
+				deleteFilesCreated();
+
+				done();
+			});
+		});
+
+		it('should strip all models and serial numbers', function(done) {
+			var inputData = readInputTestFile();
+
+			stripdata.program.stripAll = true;
+
+			stripdata.performDataStripping(function() {
+				var outputData = readOutputTestFile();
+
+				outputData[0].deviceId.should.deep.equal('smbg device-Serial Number');
+				outputData[1].deviceId.should.deep.equal('cbg device-Serial Number');
+				outputData[2].deviceId.should.deep.equal('bolus device-Serial Number');
+				outputData[3].deviceId.should.deep.equal('basal device-Serial Number');
+				outputData[4].deviceId.should.deep.equal('deviceEvent device-Serial Number');
+				deleteFilesCreated();
+
+				done();
+			});
+		});
+
+		it('should strip all models and serial numbers except the model for the given model', function(done) {
+			var inputData = readInputTestFile();
+
+			stripdata.program.stripAll = true;
+			stripdata.program.leaveModels = ['Model A'];
+
+			stripdata.performDataStripping(function() {
+				var outputData = readOutputTestFile();
+
+				outputData[0].deviceId.should.deep.equal('Model A-Serial Number');
+				outputData[1].deviceId.should.deep.equal('cbg device-Serial Number');
+				outputData[2].deviceId.should.deep.equal('bolus device-Serial Number');
+				outputData[3].deviceId.should.deep.equal('Model A-Serial Number');
+				outputData[4].deviceId.should.deep.equal('deviceEvent device-Serial Number');
+				deleteFilesCreated();
+
+				done();
+			});
+		});
+
+		it('should strip all models and serial numbers except the serial number for the given model', function(done) {
+			var inputData = readInputTestFile();
+
+			stripdata.program.stripAll = true;
+			stripdata.program.leaveSNs = ['Model A'];
+
+			stripdata.performDataStripping(function() {
+				var outputData = readOutputTestFile();
+
+				outputData[0].deviceId.should.deep.equal('smbg device-456456');
+				outputData[1].deviceId.should.deep.equal('cbg device-Serial Number');
+				outputData[2].deviceId.should.deep.equal('bolus device-Serial Number');
+				outputData[3].deviceId.should.deep.equal('basal device-cbacba');
+				outputData[4].deviceId.should.deep.equal('deviceEvent device-Serial Number');
+				deleteFilesCreated();
+
+				done();
+			});
+		});
+
+		it('should remove the given data type', function(done) {
+			var inputData = readInputTestFile();
+
+			stripdata.program.removeTypes = ['cbg'];
+
+			stripdata.performDataStripping(function() {
+				var outputData = readOutputTestFile();
+
+				outputData.length.should.deep.equal(4);
+				outputData[0].deviceId.should.deep.equal('Model A-456456');
+				outputData[1].deviceId.should.deep.equal('Model C-654654');
+				outputData[2].deviceId.should.deep.equal('Model A-cbacba');
+				outputData[3].deviceId.should.deep.equal('Model B-fedfed');
+				deleteFilesCreated();
+
+				done();
+			});
+		});
+
+		it('should remove all data types', function(done) {
+			var inputData = readInputTestFile();
+
+			stripdata.program.removeAll = true;
+
+			stripdata.performDataStripping(function() {
+				var outputData = readOutputTestFile();
+
+				outputData.length.should.deep.equal(0);
+				deleteFilesCreated();
+
+				done();
+			});
+		});
+
+		it('should remove all data types except for the given data type', function(done) {
+			var inputData = readInputTestFile();
+
+			stripdata.program.removeAll = true;
+			stripdata.program.leaveTypes = ['cbg'];
+
+			stripdata.performDataStripping(function() {
+				var outputData = readOutputTestFile();
+
+				outputData.length.should.deep.equal(1);
+				outputData[0].deviceId.should.deep.equal('Model B-defdef');
+				deleteFilesCreated();
+
+				done();
+			});
+		});
+
+		it('should hash all of the ID types if option is selected', function(done) {
+			var inputData = readInputTestFile();
+
+			stripdata.program.hashIDs = true;
+
+			stripdata.performDataStripping(function() {
+				var outputData = readOutputTestFile();
+
+				for (var i in outputData) {
+					var expectGroup = inputData[i]._groupId;
+					var expectUpload = inputData[i].uploadId;
+					should.not.exist(outputData[i]._groupId);
+					should.exist(outputData[i].hash_groupId);
+					outputData[i].hash_groupId.should.not.equal(expectGroup);
+					should.not.exist(outputData[i].uploadId);
+					should.exist(outputData[i].hash_uploadId);
+					outputData[i].hash_uploadId.should.not.equal(expectUpload);
+				}
+				deleteFilesCreated();
+
+				done();
+			});
+		});
+
+		it('should not hash all of the ID types if option is not selected', function(done) {
+			var inputData = readInputTestFile();
+
+			stripdata.program.hashIDs = false;
+
+			stripdata.performDataStripping(function() {
+				var outputData = readOutputTestFile();
+
+				for (var i in outputData) {
+					var expectGroup = inputData[i]._groupId;
+					var expectUpload = inputData[i].uploadId;
+					should.exist(outputData[i]._groupId);
+					should.not.exist(outputData[i].hash_groupId);
+					outputData[i]._groupId.should.equal(expectGroup);
+					should.exist(outputData[i].uploadId);
+					should.not.exist(outputData[i].hash_uploadId);
+					outputData[i].uploadId.should.equal(expectUpload);	
+				}
+				deleteFilesCreated();
+
+				done();
+			});
+		});
+
+		it('should remove the source field if option is selected', function(done) {
+			var inputData = readInputTestFile();
+
+			stripdata.program.removeSource = true;
+
+			stripdata.performDataStripping(function() {
+				var outputData = readOutputTestFile();
+
+				for (var i in outputData) {
+					should.not.exist(outputData[i].source);	
+				}
+				deleteFilesCreated();
+
+				done();
+			});
+		});
+
+		it('should not remove the source field if option is not selected', function(done) {
+			var inputData = readInputTestFile();
+
+			stripdata.program.removeSource = false;
+
+			stripdata.performDataStripping(function() {
+				var outputData = readOutputTestFile();
+
+				for (var i in outputData) {
+					should.exist(outputData[i].source);	
+				}
+				deleteFilesCreated();
+
+				done();
+			});
+		});
 
 	})
 	
