@@ -40,9 +40,9 @@ program
     	'Verbose output.')
     .parse(process.argv);
 
-performDataStripping();
+performDataStripping(function() {});
 
-function performDataStripping() {
+function performDataStripping(callback) {
 	checkOptions();
 	if (program.verbose) {
 		printOptions();
@@ -89,6 +89,7 @@ function performDataStripping() {
 			if (program.verbose) {
 				console.log(chalk.yellow.bold('Done writing to output.'));
 			}
+			callback();
 		});
 }
 

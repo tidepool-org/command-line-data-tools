@@ -11,9 +11,36 @@ describe('stripdata', function() {
 
 	describe('general functionality', function() {
 		
-		it('should not modify data when no options');
-		it('should remove the model name for a specific model');
-		it('should not remove the model name for a different model');
+		it('should not modify data when no options', function(done) {
+			var inputData = readInputTestFile();
+
+			stripdata.performDataStripping(function() {
+				var outputData = readOutputTestFile();
+				inputData.should.not.deep.equal(outputData);
+				deleteFilesCreated();
+
+				done();
+			});
+		});
+
+		// it('should remove the model name for a specific model', function() {
+		// 	var inputData = readInputTestFile();
+
+		// 	stripdata.program.stripModels = ['Model A'];
+
+		// 	stripdata.performDataStripping();
+
+		// 	var outputData = readOutputTestFile();
+
+		// 	outputData[0].deviceId.should.deep.equal('smbg device-456456');
+		// 	outputData[1].deviceId.should.deep.equal('Model B-defdef');
+		// 	outputData[2].deviceId.should.deep.equal('Model C-654654');
+		// 	outputData[3].deviceId.should.deep.equal('basal device-cbacba');
+		// 	outputData[4].deviceId.should.deep.equal('Model B-fedfed');
+		//	deleteFilesCreated();
+		// });
+
+		it('should remove the model for muliple specified models');
 		it('should remove the serial number for a given model');
 		it('should not remove the serial number for a different model');
 		it('should strip all models and serial numbers');
@@ -70,6 +97,7 @@ describe('stripdata', function() {
 				chunk.val.uploadId.should.equal(expectUpload);				
 			}
 		});
+
 		it('should hash all Ids if option is selected', function() {
 			stripdata.program.hashIDs = true;
 			var data = readInputTestFile();
@@ -91,6 +119,8 @@ describe('stripdata', function() {
 });
 
 function resetOptions() {
+	stripdata.program.input = 'test/testdata.json';
+	stripdata.program.output = 'test/testdataout.json';
 	stripdata.program.stripModels = [];
 	stripdata.program.stripSNs = [];
 	stripdata.program.leaveModels = [];
@@ -100,9 +130,20 @@ function resetOptions() {
 	stripdata.program.removeAll = false;
 	stripdata.program.hashIDs = false;
 	stripdata.program.removeSource = false;
+	stripdata.program.verbose = false;
 }
 
 function readInputTestFile() {
 	var input = fs.readFileSync('test/testdata.json', {encoding: 'utf8'});
 	return JSON.parse(input);
+}
+
+function readOutputTestFile() {
+	var output = fs.readFileSync('test/testdataout.json', {encoding: 'utf8'});
+	return JSON.parse(output);
+}
+
+function deleteFilesCreated() {
+	const execSync = require('child_process').execSync;
+	execSync('rm test/testdataout.json');
 }

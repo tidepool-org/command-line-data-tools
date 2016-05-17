@@ -15,21 +15,21 @@
 	},
 	{
 		"_groupId": "987987",
-		"deviceId": "Model C_654654",
+		"deviceId": "Model C-654654",
 		"source": "carelink",
 		"type": "bolus",
 		"uploadId": "321321"
 	},
 	{
 		"_groupId": "012012",
-		"deviceId": "Model A-456456",
+		"deviceId": "Model A-cbacba",
 		"source": "carelink",
 		"type": "basal",
 		"uploadId": "333333"
 	},
 	{
 		"_groupId": "111111",
-		"deviceId": "Model B-defdef",
+		"deviceId": "Model B-fedfed",
 		"source": "carelink",
 		"type": "deviceEvent",
 		"uploadId": "222222"
