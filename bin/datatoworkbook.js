@@ -24,7 +24,26 @@ const SMBG_COLS = [
     { header: 'Hash Upload Id', key: 'hash_uploadId', width: 10 },
     { header: 'Group Id', key: '_groupId', width: 10 },
     { header: 'Hash Group Id', key: 'hash_groupId', width: 10 },
+    { header: 'Id', key: 'id', width: 10 },
+    { header: 'Source', key: 'source', width: 10 },
+    { header: 'Payload', key: 'payload', width: 10 }
+];
+
+const CBG_COLS = [
+    { header: 'Units', key: 'units', width: 10 },
+    { header: 'Value', key: 'value', width: 10 },
+    { header: 'Clock Drift Offset', key: 'clockDriftOffset', width: 10 },
+    { header: 'Conversion Offset', key: 'conversionOffset', width: 10 },
     { header: 'Created Time', key: 'createdTime', width: 10 },
+    { header: 'Device Id', key: 'deviceId', width: 10 },
+    { header: 'Device Time', key: 'deviceTime', width: 10 },
+    { header: 'GUID', key: 'guid', width: 10 },
+    { header: 'Time', key: 'time', width: 10 },
+    { header: 'Timezone Offset', key: 'timezoneOffset', width: 10 },
+    { header: 'Upload Id', key: 'uploadId', width: 10 },
+    { header: 'Hash Upload Id', key: 'hash_uploadId', width: 10 },
+    { header: 'Group Id', key: '_groupId', width: 10 },
+    { header: 'Hash Group Id', key: 'hash_groupId', width: 10 },
     { header: 'Id', key: 'id', width: 10 },
     { header: 'Source', key: 'source', width: 10 },
     { header: 'Payload', key: 'payload', width: 10 }
@@ -53,13 +72,18 @@ function convertToWorkbook(callback) {
 	var wb = makeWorkbook();
 	var smbgSheet = wb.addWorksheet('smbg', 'FFC0000');
 	smbgSheet.columns = SMBG_COLS;
+	var cbgSheet = wb.addWorksheet('cbg', '0000CFF');
+	cbgSheet.columns = CBG_COLS;
 
 	ifs
 		.pipe(jsonStream)
 		.on('data', function(chunk) {
 			for (var i in chunk) {
+				var diaEvent = {val: chunk[i]};
 				if (chunk[i].type === 'smbg') {
-					smbgSheet.addRow(processSmbgEvent({val: chunk[i]}));
+					smbgSheet.addRow(processSmbgEvent(diaEvent));
+				} else if (chunk[i].type === 'cbg') {
+					cbgSheet.addRow(processCbgEvent(diaEvent));
 				}
 			}
 		})
@@ -88,27 +112,7 @@ function makeWorkbook() {
 	return new Excel.Workbook();
 }
 
-// const SMBG_COLS = [
-//     { header: 'Subtype', key: 'subType', width: 10 },
-//     { header: 'Units', key: 'units', width: 10 },
-//     { header: 'Value', key: 'value', width: 10 },
-//     { header: 'Clock Drift Offset', key: 'clockDriftOffset', width: 10 },
-//     { header: 'Conversion Offset', key: 'conversionOffset', width: 10 },
-//     { header: 'Created Time', key: 'createdTime', width: 10 },
-//     { header: 'Device Id', key: 'deviceId', width: 10 },
-//     { header: 'Device Time', key: 'deviceTime', width: 10 },
-//     { header: 'GUID', key: 'guid', width: 10 },
-//     { header: 'Time', key: 'time', width: 10 },
-//     { header: 'Timezone Offset', key: 'timezoneOffset', width: 10 },
-//     { header: 'Upload Id', key: 'uploadId', width: 10 },
-//     { header: 'Hash Upload Id', key: 'hash_uploadId', width: 10 },
-//     { header: 'Group Id', key: '_groupId', width: 10 },
-//     { header: 'Hash Group Id', key: 'hash_groupId', width: 10 },
-//     { header: 'Created Time', key: 'createdTime', width: 10 },
-//     { header: 'Id', key: 'id', width: 10 },
-//     { header: 'Source', key: 'source', width: 10 },
-//     { header: 'Payload', key: 'payload', width: 10 }
-// ];
+
 function processSmbgEvent(smbg) {
 	return {
 		subType: smbg.val.subType,
@@ -126,9 +130,30 @@ function processSmbgEvent(smbg) {
 		hash_uploadId: smbg.val.hash_uploadId,
 		_groupId: smbg.val._groupId,
 		hash_groupId: smbg.val.hash_groupId,
-		createdTime: smbg.val.createdTime,
 		id: smbg.val.id,
 		source: smbg.val.source,
 		payload: JSON.stringify(smbg.val.payload)
+	};
+}
+
+function processCbgEvent(cbg) {
+	return {
+		units: cbg.val.units,
+		value: cbg.val.value,
+		clockDriftOffset: cbg.val.clockDriftOffset,
+		conversionOffset: cbg.val.conversionOffset,
+		createdTime: cbg.val.createdTime,
+		deviceId: cbg.val.deviceId,
+		deviceTime: cbg.val.deviceTime,
+		guid: cbg.val.guid,
+		time: cbg.val.time,
+		timezoneOffset: cbg.val.timezoneOffset,
+		uploadId: cbg.val.uploadId,
+		hash_uploadId: cbg.val.hash_uploadId,
+		_groupId: cbg.val._groupId,
+		hash_groupId: cbg.val.hash_groupId,
+		id: cbg.val.id,
+		source: cbg.val.source,
+		payload: JSON.stringify(cbg.val.payload)
 	};
 }
