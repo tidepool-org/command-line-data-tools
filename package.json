@@ -10,7 +10,7 @@
     "getdata": "./bin/getdata.js",
     "getusers": "./bin/getusers.js",
     "stripdata": "./bin/stripdata.js",
-    "datatocsv": "./bin/datatocsv.js"
+    "data2workbook": "./bin/datatoworkbook.js"
   },
   "dependencies": {
     "JSONStream": "^1.1.1",
@@ -19,6 +19,7 @@
     "co-prompt": "^1.0.0",
     "commander": "^2.9.0",
     "crypto": "0.0.3",
+    "exceljs": "^0.2.8",
     "fs": "0.0.2",
     "json2csv": "^3.4.1",
     "request": "^2.72.0"
