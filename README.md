@@ -73,3 +73,4 @@ stripdata
     --hashIDs <hashIDs>            Pass IDs (such as _groupid and uploadId) through a one-way hash.
     --removeSource <removeSource>  Remove the source of the data, e.g. carelink.
 ```
+test
