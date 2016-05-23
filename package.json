@@ -4,7 +4,7 @@
   "description": "A command-line toolkit for parsing user data.",
   "main": "tidepool-command-line-data-tools.js",
   "scripts": {
-    "test": "./test/tests.sh"
+    "test": "mocha test/test-stripdata.js"
   },
   "bin": {
     "getdata": "./bin/getdata.js",
