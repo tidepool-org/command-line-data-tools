@@ -12,6 +12,7 @@ program
     .arguments('<authemail> <useremail>')
     .option('-o, --output <output>', 'path/to/output.json')
     .option('-t, --types <types>', 'list of strings of data types', list)
+    .option('-v, --verbose', 'Verbose output.')
     .action(function(authemail, useremail) {
 	    
 	    var password, session_token;
@@ -28,7 +29,9 @@ program
 						'An error occured with login request. ' 
 							+ 'Bad username/password?');
 
-					console.log(chalk.green.bold('Successful login.'));
+					if (program.verbose) {
+						console.log(chalk.green.bold('Successful login.'));
+					}
 
 					var req = makeDataQueryRequest(
 											useremail, 
@@ -44,7 +47,9 @@ program
 							'An error occured with data request. '
 							+ 'Incorrect email for data?');
 
-						console.log(chalk.green.bold('Successful data request.'));
+						if (program.verbose) {
+							console.log(chalk.green.bold('Successful data request.'));
+						}
 					}).pipe(outstream);
 
 			});

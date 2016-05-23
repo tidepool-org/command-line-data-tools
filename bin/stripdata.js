@@ -194,7 +194,7 @@ function makeInFileStream() {
 	if (program.input) {
 		ifs = fs.createReadStream(program.input, {encoding: 'utf8'});
 	} else {
-		ifs = process.stdout;
+		ifs = process.stdin;
 	}
 	return ifs;
 }

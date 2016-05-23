@@ -11,6 +11,7 @@ program
     .version('0.0.1')
     .arguments('<email>')
     .option('-o, --output <output>', 'path/to/output.json')
+    .option('-v, --verbose', 'Verbose output.')
     .action(function(email) {
 	    
 	    var password, session_token;
@@ -27,7 +28,9 @@ program
 						'An error occured with login request. ' 
 							+ 'Bad username/password?');
 
-					console.log(chalk.green.bold('Successful login.'));
+					if (program.verbose) {
+						console.log(chalk.green.bold('Successful login.'));
+					}
 
 					var user_id = JSON.parse(body).userid;
 					var req = makeUserAccessRequest(user_id, response
@@ -38,8 +41,10 @@ program
 						exitOnError(error, response.statusCode, 
 							'An error occured with user access request.');
 
-						console.log(chalk.green.bold(
-								'Successful user access request.'));
+						if (program.verbose) {
+							console.log(chalk.green.bold(
+									'Successful user access request.'));
+						}
 
 						var users = getUsersFromInfo(JSON.parse(body));
 						outputToOutstream(program.output, users);

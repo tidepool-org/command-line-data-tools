@@ -4,12 +4,13 @@
   "description": "A command-line toolkit for parsing user data.",
   "main": "tidepool-command-line-data-tools.js",
   "scripts": {
-    "test": "test/tests.sh"
+    "test": "./test/tests.sh"
   },
   "bin": {
     "getdata": "./bin/getdata.js",
     "getusers": "./bin/getusers.js",
-    "stripdata": "./bin/stripdata.js"
+    "stripdata": "./bin/stripdata.js",
+    "datatocsv": "./bin/datatocsv.js"
   },
   "dependencies": {
     "JSONStream": "^1.1.1",
@@ -19,6 +20,7 @@
     "commander": "^2.9.0",
     "crypto": "0.0.3",
     "fs": "0.0.2",
+    "json2csv": "^3.4.1",
     "request": "^2.72.0"
   },
   "devDependencies": {
