@@ -49,6 +49,32 @@ const CBG_COLS = [
     { header: 'Payload', key: 'payload', width: 10 }
 ];
 
+const BOLUS_COLS = [
+    { header: 'Subtype', key: 'subType', width: 10 },
+    { header: 'Units', key: 'units', width: 10 },
+    { header: 'Normal', key: 'normal', width: 10 },
+    { header: 'Expected Normal', key: 'expectedNormal', width: 10 },
+    { header: 'Extended', key: 'extended', width: 10 },
+    { header: 'Expected Extended', key: 'expectedExtended', width: 10 },
+    { header: 'Duration', key: 'duration', width: 10 },
+    { header: 'Expected Duration', key: 'expectedDuration', width: 10 },
+    { header: 'Clock Drift Offset', key: 'clockDriftOffset', width: 10 },
+    { header: 'Conversion Offset', key: 'conversionOffset', width: 10 },
+    { header: 'Created Time', key: 'createdTime', width: 10 },
+    { header: 'Device Id', key: 'deviceId', width: 10 },
+    { header: 'Device Time', key: 'deviceTime', width: 10 },
+    { header: 'GUID', key: 'guid', width: 10 },
+    { header: 'Time', key: 'time', width: 10 },
+    { header: 'Timezone Offset', key: 'timezoneOffset', width: 10 },
+    { header: 'Upload Id', key: 'uploadId', width: 10 },
+    { header: 'Hash Upload Id', key: 'hash_uploadId', width: 10 },
+    { header: 'Group Id', key: '_groupId', width: 10 },
+    { header: 'Hash Group Id', key: 'hash_groupId', width: 10 },
+    { header: 'Id', key: 'id', width: 10 },
+    { header: 'Source', key: 'source', width: 10 },
+    { header: 'Payload', key: 'payload', width: 10 }
+];
+
 // -------------- END COLUMN HEADERS --------------
 
 program
@@ -74,6 +100,8 @@ function convertToWorkbook(callback) {
 	smbgSheet.columns = SMBG_COLS;
 	var cbgSheet = wb.addWorksheet('cbg', '0000CFF');
 	cbgSheet.columns = CBG_COLS;
+	var bolusSheet = wb.addWorksheet('bolus', '00CFC00');
+	bolusSheet.columns = BOLUS_COLS;
 
 	ifs
 		.pipe(jsonStream)
@@ -84,6 +112,8 @@ function convertToWorkbook(callback) {
 					smbgSheet.addRow(processSmbgEvent(diaEvent));
 				} else if (chunk[i].type === 'cbg') {
 					cbgSheet.addRow(processCbgEvent(diaEvent));
+				} else if (chunk[i].type === 'bolus') {
+					bolusSheet.addRow(processBolusEvent(diaEvent));
 				}
 			}
 		})
@@ -155,5 +185,33 @@ function processCbgEvent(cbg) {
 		id: cbg.val.id,
 		source: cbg.val.source,
 		payload: JSON.stringify(cbg.val.payload)
+	};
+}
+
+function processBolusEvent(bolus) {
+	return {
+		subType: bolus.val.subType,
+		units: bolus.val.units,
+		normal: bolus.val.normal,
+		expectedNormal: bolus.val.expectedNormal,
+		extended: bolus.val.extended,
+		expectedExtended: bolus.val.expectedExtended,
+		duration: bolus.val.duration,
+		expectedDuration: bolus.val.expectedDuration,
+		clockDriftOffset: bolus.val.clockDriftOffset,
+		conversionOffset: bolus.val.conversionOffset,
+		createdTime: bolus.val.createdTime,
+		deviceId: bolus.val.deviceId,
+		deviceTime: bolus.val.deviceTime,
+		guid: bolus.val.guid,
+		time: bolus.val.time,
+		timezoneOffset: bolus.val.timezoneOffset,
+		uploadId: bolus.val.uploadId,
+		hash_uploadId: bolus.val.hash_uploadId,
+		_groupId: bolus.val._groupId,
+		hash_groupId: bolus.val.hash_groupId,
+		id: bolus.val.id,
+		source: bolus.val.source,
+		payload: JSON.stringify(bolus.val.payload)
 	};
 }
