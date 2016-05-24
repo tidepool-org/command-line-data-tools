@@ -5,77 +5,7 @@ var fs = require('fs');
 var chalk = require('chalk');
 var JSONStream = require('JSONStream');
 var Excel = require('exceljs');
-
-// ---------------- COLUMN HEADERS ----------------
-
-const SMBG_COLS = [
-    { header: 'Subtype', key: 'subType', width: 10 },
-    { header: 'Units', key: 'units', width: 10 },
-    { header: 'Value', key: 'value', width: 10 },
-    { header: 'Clock Drift Offset', key: 'clockDriftOffset', width: 10 },
-    { header: 'Conversion Offset', key: 'conversionOffset', width: 10 },
-    { header: 'Created Time', key: 'createdTime', width: 10 },
-    { header: 'Device Id', key: 'deviceId', width: 10 },
-    { header: 'Device Time', key: 'deviceTime', width: 10 },
-    { header: 'GUID', key: 'guid', width: 10 },
-    { header: 'Time', key: 'time', width: 10 },
-    { header: 'Timezone Offset', key: 'timezoneOffset', width: 10 },
-    { header: 'Upload Id', key: 'uploadId', width: 10 },
-    { header: 'Hash Upload Id', key: 'hash_uploadId', width: 10 },
-    { header: 'Group Id', key: '_groupId', width: 10 },
-    { header: 'Hash Group Id', key: 'hash_groupId', width: 10 },
-    { header: 'Id', key: 'id', width: 10 },
-    { header: 'Source', key: 'source', width: 10 },
-    { header: 'Payload', key: 'payload', width: 10 }
-];
-
-const CBG_COLS = [
-    { header: 'Units', key: 'units', width: 10 },
-    { header: 'Value', key: 'value', width: 10 },
-    { header: 'Clock Drift Offset', key: 'clockDriftOffset', width: 10 },
-    { header: 'Conversion Offset', key: 'conversionOffset', width: 10 },
-    { header: 'Created Time', key: 'createdTime', width: 10 },
-    { header: 'Device Id', key: 'deviceId', width: 10 },
-    { header: 'Device Time', key: 'deviceTime', width: 10 },
-    { header: 'GUID', key: 'guid', width: 10 },
-    { header: 'Time', key: 'time', width: 10 },
-    { header: 'Timezone Offset', key: 'timezoneOffset', width: 10 },
-    { header: 'Upload Id', key: 'uploadId', width: 10 },
-    { header: 'Hash Upload Id', key: 'hash_uploadId', width: 10 },
-    { header: 'Group Id', key: '_groupId', width: 10 },
-    { header: 'Hash Group Id', key: 'hash_groupId', width: 10 },
-    { header: 'Id', key: 'id', width: 10 },
-    { header: 'Source', key: 'source', width: 10 },
-    { header: 'Payload', key: 'payload', width: 10 }
-];
-
-const BOLUS_COLS = [
-    { header: 'Subtype', key: 'subType', width: 10 },
-    { header: 'Units', key: 'units', width: 10 },
-    { header: 'Normal', key: 'normal', width: 10 },
-    { header: 'Expected Normal', key: 'expectedNormal', width: 10 },
-    { header: 'Extended', key: 'extended', width: 10 },
-    { header: 'Expected Extended', key: 'expectedExtended', width: 10 },
-    { header: 'Duration', key: 'duration', width: 10 },
-    { header: 'Expected Duration', key: 'expectedDuration', width: 10 },
-    { header: 'Clock Drift Offset', key: 'clockDriftOffset', width: 10 },
-    { header: 'Conversion Offset', key: 'conversionOffset', width: 10 },
-    { header: 'Created Time', key: 'createdTime', width: 10 },
-    { header: 'Device Id', key: 'deviceId', width: 10 },
-    { header: 'Device Time', key: 'deviceTime', width: 10 },
-    { header: 'GUID', key: 'guid', width: 10 },
-    { header: 'Time', key: 'time', width: 10 },
-    { header: 'Timezone Offset', key: 'timezoneOffset', width: 10 },
-    { header: 'Upload Id', key: 'uploadId', width: 10 },
-    { header: 'Hash Upload Id', key: 'hash_uploadId', width: 10 },
-    { header: 'Group Id', key: '_groupId', width: 10 },
-    { header: 'Hash Group Id', key: 'hash_groupId', width: 10 },
-    { header: 'Id', key: 'id', width: 10 },
-    { header: 'Source', key: 'source', width: 10 },
-    { header: 'Payload', key: 'payload', width: 10 }
-];
-
-// -------------- END COLUMN HEADERS --------------
+var COL_HEADERS = require('./excel-col-headers.js').COL_HEADERS;
 
 program
 	.version('0.0.1')
@@ -97,24 +27,22 @@ function convertToWorkbook(callback) {
 
 	var wb = makeWorkbook();
 	var smbgSheet = wb.addWorksheet('smbg', 'FFC0000');
-	smbgSheet.columns = SMBG_COLS;
+	smbgSheet.columns = COL_HEADERS.SMBG_COLS;
 	var cbgSheet = wb.addWorksheet('cbg', '0000CFF');
-	cbgSheet.columns = CBG_COLS;
+	cbgSheet.columns = COL_HEADERS.CBG_COLS;
+	var cgmSettingsSheet = wb.addWorksheet('cgmSettings', '8A2BE20');
+	cgmSettingsSheet.columns = COL_HEADERS.CGM_SETTINGS_COLS;
 	var bolusSheet = wb.addWorksheet('bolus', '00CFC00');
-	bolusSheet.columns = BOLUS_COLS;
+	bolusSheet.columns = COL_HEADERS.BOLUS_COLS;
+	var bloodKetoneSheet = wb.addWorksheet('bloodKetone', 'FFFFC00');
+	bloodKetoneSheet.columns = COL_HEADERS.BLOOD_KETONE_COLS;
 
 	ifs
 		.pipe(jsonStream)
 		.on('data', function(chunk) {
 			for (var i in chunk) {
 				var diaEvent = {val: chunk[i]};
-				if (chunk[i].type === 'smbg') {
-					smbgSheet.addRow(processSmbgEvent(diaEvent));
-				} else if (chunk[i].type === 'cbg') {
-					cbgSheet.addRow(processCbgEvent(diaEvent));
-				} else if (chunk[i].type === 'bolus') {
-					bolusSheet.addRow(processBolusEvent(diaEvent));
-				}
+				processDiaEvent(wb, diaEvent);
 			}
 		})
 		.on('end', function() {
@@ -142,6 +70,25 @@ function makeWorkbook() {
 	return new Excel.Workbook();
 }
 
+
+function processDiaEvent(wb, diaEvent) {
+	if (diaEvent.val.type === 'smbg') {
+		var smbgSheet = wb.getWorksheet('smbg');
+		smbgSheet.addRow(processSmbgEvent(diaEvent));
+	} else if (diaEvent.val.type === 'cbg') {
+		var cbgSheet = wb.getWorksheet('cbg');
+		cbgSheet.addRow(processCbgEvent(diaEvent));
+	} else if (diaEvent.val.type === 'cgmSettings'){
+		var cgmSettingsSheet = wb.getWorksheet('cgmSettings');
+		cgmSettingsSheet.addRow(processCgmSettingsEvent(diaEvent));
+	} else if (diaEvent.val.type === 'bolus') {
+		var bolusSheet = wb.getWorksheet('bolus');
+		bolusSheet.addRow(processBolusEvent(diaEvent));
+	} else if (diaEvent.val.type === 'bloodKetone') {
+		var bloodKetoneSheet = wb.getWorksheet('bloodKetone');
+		bloodKetoneSheet.addRow(processBloodKetoneEvent(diaEvent));
+	}
+}
 
 function processSmbgEvent(smbg) {
 	return {
@@ -188,6 +135,40 @@ function processCbgEvent(cbg) {
 	};
 }
 
+function processCgmSettingsEvent(cgmSettings) {
+	return {
+		units: cgmSettings.val.units,
+		clockDriftOffset: cgmSettings.val.clockDriftOffset,
+		conversionOffset: cgmSettings.val.conversionOffset,
+		createdTime: cgmSettings.val.createdTime,
+		deviceId: cgmSettings.val.deviceId,
+		deviceTime: cgmSettings.val.deviceTime,
+		guid: cgmSettings.val.guid,
+		highAlerts: cgmSettings.val.highAlerts.enabled.toString(),
+		highAlertsLevel: cgmSettings.val.highAlerts.level,
+		highAlertsSnooze: cgmSettings.val.highAlerts.snooze,
+		lowAlerts: cgmSettings.val.lowAlerts.enabled.toString(),
+		lowAlertsLevel: cgmSettings.val.lowAlerts.level,
+		lowAlertsSnooze: cgmSettings.val.lowAlerts.snooze,
+		outOfRangeAlerts: cgmSettings.val.outOfRangeAlerts.enabled.toString(),
+		outOfRangeAlertsSnooze: cgmSettings.val.outOfRangeAlerts.snooze,
+		fallRateAlerts: cgmSettings.val.rateOfChangeAlerts.fallRate.enabled.toString(),
+		fallRateAlertsRate: cgmSettings.val.rateOfChangeAlerts.fallRate.rate,
+		riseRateAlerts: cgmSettings.val.rateOfChangeAlerts.riseRate.enabled.toString(),
+		riseRateAlertsRate: cgmSettings.val.rateOfChangeAlerts.riseRate.rate,
+		transmitterId: cgmSettings.val.transmitterId,
+		time: cgmSettings.val.time,
+		timezoneOffset: cgmSettings.val.timezoneOffset,
+		uploadId: cgmSettings.val.uploadId,
+		hash_uploadId: cgmSettings.val.hash_uploadId,
+		_groupId: cgmSettings.val._groupId,
+		hash_groupId: cgmSettings.val.hash_groupId,
+		id: cgmSettings.val.id,
+		source: cgmSettings.val.source,
+		payload: JSON.stringify(cgmSettings.val.payload)
+	};
+}
+
 function processBolusEvent(bolus) {
 	return {
 		subType: bolus.val.subType,
@@ -213,5 +194,27 @@ function processBolusEvent(bolus) {
 		id: bolus.val.id,
 		source: bolus.val.source,
 		payload: JSON.stringify(bolus.val.payload)
+	};
+}
+
+function processBloodKetoneEvent(bloodKetone) {
+	return {
+		units: bloodKetone.val.units,
+		value: bloodKetone.val.value,
+		clockDriftOffset: bloodKetone.val.clockDriftOffset,
+		conversionOffset: bloodKetone.val.conversionOffset,
+		createdTime: bloodKetone.val.createdTime,
+		deviceId: bloodKetone.val.deviceId,
+		deviceTime: bloodKetone.val.deviceTime,
+		guid: bloodKetone.val.guid,
+		time: bloodKetone.val.time,
+		timezoneOffset: bloodKetone.val.timezoneOffset,
+		uploadId: bloodKetone.val.uploadId,
+		hash_uploadId: bloodKetone.val.hash_uploadId,
+		_groupId: bloodKetone.val._groupId,
+		hash_groupId: bloodKetone.val.hash_groupId,
+		id: bloodKetone.val.id,
+		source: bloodKetone.val.source,
+		payload: JSON.stringify(bloodKetone.val.payload)
 	};
 }
