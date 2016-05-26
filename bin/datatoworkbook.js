@@ -5,12 +5,14 @@ var fs = require('fs');
 var chalk = require('chalk');
 var JSONStream = require('JSONStream');
 var Excel = require('exceljs');
-var COL_HEADERS = require('./excel-col-headers.js').COL_HEADERS;
+const COL_HEADERS = require('./excel-col-headers.js').COL_HEADERS;
+const BG_CONVERSION = 18.01559;
 
 program
 	.version('0.0.1')
 	.option('-i, --input <input>', 'path/to/input.json')
 	.option('-o, --output <output>', 'path/to/output.xlsx')
+	.option('--mgdL', 'Convert all BG values to mg/dL.')
 	.option('-v, --verbose', 'Verbose output.')
 	.parse(process.argv);
 
@@ -26,14 +28,31 @@ function convertToWorkbook(callback) {
 	var jsonStream = JSONStream.parse();
 
 	var wb = makeWorkbook();
+	
 	var smbgSheet = wb.addWorksheet('smbg', 'FFC0000');
 	smbgSheet.columns = COL_HEADERS.SMBG_COLS;
+	
 	var cbgSheet = wb.addWorksheet('cbg', '0000CFF');
 	cbgSheet.columns = COL_HEADERS.CBG_COLS;
-	var cgmSettingsSheet = wb.addWorksheet('cgmSettings', '8A2BE20');
+	
+	var cgmSettingsSheet = wb.addWorksheet('cgmSettings', '0000688');
 	cgmSettingsSheet.columns = COL_HEADERS.CGM_SETTINGS_COLS;
+	
 	var bolusSheet = wb.addWorksheet('bolus', '00CFC00');
 	bolusSheet.columns = COL_HEADERS.BOLUS_COLS;
+	
+	var basalScheduleSheet = wb.addWorksheet('basalSchedules', '0068600');
+	basalScheduleSheet.columns = COL_HEADERS.BASAL_SCHEDULE_COLS;
+
+	var bgTargetSheet = wb.addWorksheet('bgTarget', '0068600');
+	bgTargetSheet.columns = COL_HEADERS.BG_TARGET_COLS;
+	
+	var carbRatioSheet = wb.addWorksheet('carbRatio', '0068600');
+	carbRatioSheet.columns = COL_HEADERS.CARB_RATIO_COLS;
+	
+	var insulinSensitivitySheet = wb.addWorksheet('insulinSensitivity', '0068600');
+	insulinSensitivitySheet.columns = COL_HEADERS.INSULIN_SENSITIVITY_COLS;
+	
 	var bloodKetoneSheet = wb.addWorksheet('bloodKetone', 'FFFFC00');
 	bloodKetoneSheet.columns = COL_HEADERS.BLOOD_KETONE_COLS;
 
@@ -73,25 +92,61 @@ function makeWorkbook() {
 
 function processDiaEvent(wb, diaEvent) {
 	if (diaEvent.val.type === 'smbg') {
+		
 		var smbgSheet = wb.getWorksheet('smbg');
-		smbgSheet.addRow(processSmbgEvent(diaEvent));
+		smbgSheet.addRow(
+			processSmbgEvent(
+				smbgSheet.lastRow.getCell('index').value,
+				diaEvent));
+
 	} else if (diaEvent.val.type === 'cbg') {
+		
 		var cbgSheet = wb.getWorksheet('cbg');
-		cbgSheet.addRow(processCbgEvent(diaEvent));
+		cbgSheet.addRow(
+			processCbgEvent(
+				cbgSheet.lastRow.getCell('index').value,
+				diaEvent));
+
 	} else if (diaEvent.val.type === 'cgmSettings'){
+		
 		var cgmSettingsSheet = wb.getWorksheet('cgmSettings');
-		cgmSettingsSheet.addRow(processCgmSettingsEvent(diaEvent));
+		cgmSettingsSheet.addRow(
+			processCgmSettingsEvent(
+				cgmSettingsSheet.lastRow.getCell('index').value,
+				diaEvent));
+
 	} else if (diaEvent.val.type === 'bolus') {
+		
 		var bolusSheet = wb.getWorksheet('bolus');
-		bolusSheet.addRow(processBolusEvent(diaEvent));
+		bolusSheet.addRow(
+			processBolusEvent(
+				bolusSheet.lastRow.getCell('index').value,
+				diaEvent));
+
+	} else if (diaEvent.val.type === 'pumpSettings') {
+		
+		processPumpSettingsEvent(
+			wb,
+			diaEvent);
+
 	} else if (diaEvent.val.type === 'bloodKetone') {
+		
 		var bloodKetoneSheet = wb.getWorksheet('bloodKetone');
-		bloodKetoneSheet.addRow(processBloodKetoneEvent(diaEvent));
+		bloodKetoneSheet.addRow(
+			processBloodKetoneEvent(
+				bloodKetoneSheet.lastRow.getCell('index').value,
+				diaEvent));
+
 	}
 }
 
-function processSmbgEvent(smbg) {
+function processSmbgEvent(lastIndex, smbg) {
+	if (program.mgdL && smbg.val.units !== 'mg/dL') {
+		smbg.val.units = 'mg/dL';
+		smbg.val.value *= BG_CONVERSION;
+	}
 	return {
+		index: (lastIndex === 'Index' ? 1 : (lastIndex+1)),
 		subType: smbg.val.subType,
 		units: smbg.val.units,
 		value: smbg.val.value,
@@ -113,8 +168,13 @@ function processSmbgEvent(smbg) {
 	};
 }
 
-function processCbgEvent(cbg) {
+function processCbgEvent(lastIndex, cbg) {
+	if (program.mgdL && cbg.val.units !== 'mg/dL') {
+		cbg.val.units = 'mg/dL';
+		cbg.val.value *= BG_CONVERSION;
+	}
 	return {
+		index: (lastIndex === 'Index' ? 1 : (lastIndex+1)),
 		units: cbg.val.units,
 		value: cbg.val.value,
 		clockDriftOffset: cbg.val.clockDriftOffset,
@@ -135,8 +195,16 @@ function processCbgEvent(cbg) {
 	};
 }
 
-function processCgmSettingsEvent(cgmSettings) {
+function processCgmSettingsEvent(lastIndex, cgmSettings) {
+	if (program.mgdL && cgmSettings.val.units !== 'mg/dL') {
+		cgmSettings.val.units = 'mg/dL';
+		cgmSettings.val.highAlerts.level *= BG_CONVERSION;
+		cgmSettings.val.lowAlerts.level *= BG_CONVERSION;
+		cgmSettings.val.rateOfChangeAlerts.fallRate.rate *= BG_CONVERSION;
+		cgmSettings.val.rateOfChangeAlerts.riseRate.rate *= BG_CONVERSION;
+	}
 	return {
+		index: (lastIndex === 'Index' ? 1 : (lastIndex+1)),
 		units: cgmSettings.val.units,
 		clockDriftOffset: cgmSettings.val.clockDriftOffset,
 		conversionOffset: cgmSettings.val.conversionOffset,
@@ -169,10 +237,10 @@ function processCgmSettingsEvent(cgmSettings) {
 	};
 }
 
-function processBolusEvent(bolus) {
+function processBolusEvent(lastIndex, bolus) {
 	return {
+		index: (lastIndex === 'Index' ? 1 : (lastIndex+1)),
 		subType: bolus.val.subType,
-		units: bolus.val.units,
 		normal: bolus.val.normal,
 		expectedNormal: bolus.val.expectedNormal,
 		extended: bolus.val.extended,
@@ -197,8 +265,209 @@ function processBolusEvent(bolus) {
 	};
 }
 
-function processBloodKetoneEvent(bloodKetone) {
+function processPumpSettingsEvent(ws, pumpSettings) {
+
+	// Basal Schedules
+	var basalSchedulesSheet = ws.getWorksheet('basalSchedules');
+	processBasalSchedules(basalSchedulesSheet,
+							pumpSettings);
+
+	// BG Targets
+	var bgTargetSheet = ws.getWorksheet('bgTarget');
+	processBgTarget(bgTargetSheet,
+					pumpSettings);
+
+	// Carb Ratios
+	var carbRatioSheet = ws.getWorksheet('carbRatio');
+	processCarbRatio(carbRatioSheet,
+						pumpSettings);
+
+	//Insulin Sensitivities
+	var insulinSensitivitySheet = ws.getWorksheet('insulinSensitivity');
+	processInsulinSensitivity(insulinSensitivitySheet,
+								pumpSettings);
+}
+
+function processBasalSchedules(sheet, pumpSettings) {
+
+	var lastIndex = sheet.lastRow.getCell('index').value;
+	var index = (lastIndex === 'Index' ? 1 : (lastIndex+1));
+
+	var lastGroup = sheet.lastRow.getCell('group').value;
+	var group = (lastGroup === 'Group' ? 1 : (lastGroup+1));
+	
+
+	var basalSchedules = pumpSettings.val.basalSchedules;
+	for (var basalSchedule in basalSchedules) {
+		
+		var sequence = 1;
+
+		for (var i in basalSchedules[basalSchedule]) {
+			var basalScheduleRow = {
+				index: index,
+				group: group,
+				sequence: sequence,
+				activeSchedule: pumpSettings.val.activeSchedule,
+				scheduleName: basalSchedule,
+				units: 'units/hour',
+				rate: basalSchedules[basalSchedule][i].rate,
+				start:  basalSchedules[basalSchedule][i].start,
+				source: pumpSettings.val.source,
+				deviceTime: pumpSettings.val.deviceTime,
+				time: pumpSettings.val.time,
+				timezoneOffset: pumpSettings.val.timezoneOffset,
+				clockDriftOffset: pumpSettings.val.clockDriftOffset,
+				conversionOffset: pumpSettings.val.conversionOffset,
+				id: pumpSettings.val.id,
+				createdTime: pumpSettings.val.createdTime,
+				hash_uploadId: pumpSettings.val.hash_uploadId,
+				hash_groupId: pumpSettings.val.hash_groupId,
+				deviceId: pumpSettings.val.deviceId,
+				payload: JSON.stringify(pumpSettings.val.payload),
+				guid: pumpSettings.val.guid,
+				uploadId: pumpSettings.val.uploadId,
+				_groupId: pumpSettings.val._groupId
+			}
+			sheet.addRow(basalScheduleRow);
+			index++;
+			sequence++;
+		}
+	}
+}
+
+function processBgTarget(sheet, pumpSettings, units) {
+
+	var lastIndex = sheet.lastRow.getCell('index').value;
+	var index = (lastIndex === 'Index' ? 1 : (lastIndex+1));
+
+	var lastGroup = sheet.lastRow.getCell('group').value;
+	var group = (lastGroup === 'Group' ? 1 : (lastGroup+1));
+	
+	var sequence = 1;
+
+	var bgTarget = pumpSettings.val.bgTarget ||
+					pumpSettings.val.bgTargets;
+	for (var i in bgTarget) {
+
+		var bgTargetRow = {
+			index: index,
+			group: group,
+			sequence: sequence,
+			units: 'mg/dL',
+			high: bgTarget[i].high * BG_CONVERSION,
+			low: bgTarget[i].low * BG_CONVERSION,
+			start:  bgTarget[i].start,
+			source: pumpSettings.val.source,
+			deviceTime: pumpSettings.val.deviceTime,
+			time: pumpSettings.val.time,
+			timezoneOffset: pumpSettings.val.timezoneOffset,
+			clockDriftOffset: pumpSettings.val.clockDriftOffset,
+			conversionOffset: pumpSettings.val.conversionOffset,
+			id: pumpSettings.val.id,
+			createdTime: pumpSettings.val.createdTime,
+			hash_uploadId: pumpSettings.val.hash_uploadId,
+			hash_groupId: pumpSettings.val.hash_groupId,
+			deviceId: pumpSettings.val.deviceId,
+			payload: JSON.stringify(pumpSettings.val.payload),
+			guid: pumpSettings.val.guid,
+			uploadId: pumpSettings.val.uploadId,
+			_groupId: pumpSettings.val._groupId
+		}
+		sheet.addRow(bgTargetRow);
+		index++;
+		sequence++;
+	}
+}
+
+function processCarbRatio(sheet, pumpSettings) {
+
+	var lastIndex = sheet.lastRow.getCell('index').value;
+	var index = (lastIndex === 'Index' ? 1 : (lastIndex+1));
+
+	var lastGroup = sheet.lastRow.getCell('group').value;
+	var group = (lastGroup === 'Group' ? 1 : (lastGroup+1));
+	
+	var sequence = 1;
+
+	var carbRatio = pumpSettings.val.carbRatio ||
+						pumpSettings.val.carbRatios;
+	for (var i in carbRatio) {
+
+		var carbRatioRow = {
+			index: index,
+			group: group,
+			sequence: sequence,
+			units: 'grams/unit',
+			amount: carbRatio[i].amount,
+			start:  carbRatio[i].start,
+			source: pumpSettings.val.source,
+			deviceTime: pumpSettings.val.deviceTime,
+			time: pumpSettings.val.time,
+			timezoneOffset: pumpSettings.val.timezoneOffset,
+			clockDriftOffset: pumpSettings.val.clockDriftOffset,
+			conversionOffset: pumpSettings.val.conversionOffset,
+			id: pumpSettings.val.id,
+			createdTime: pumpSettings.val.createdTime,
+			hash_uploadId: pumpSettings.val.hash_uploadId,
+			hash_groupId: pumpSettings.val.hash_groupId,
+			deviceId: pumpSettings.val.deviceId,
+			payload: JSON.stringify(pumpSettings.val.payload),
+			guid: pumpSettings.val.guid,
+			uploadId: pumpSettings.val.uploadId,
+			_groupId: pumpSettings.val._groupId
+		}
+		sheet.addRow(carbRatioRow);
+		index++;
+		sequence++;
+	}
+}
+
+function processInsulinSensitivity(sheet, pumpSettings) {
+
+	var lastIndex = sheet.lastRow.getCell('index').value;
+	var index = (lastIndex === 'Index' ? 1 : (lastIndex+1));
+
+	var lastGroup = sheet.lastRow.getCell('group').value;
+	var group = (lastGroup === 'Group' ? 1 : (lastGroup+1));
+	
+	var sequence = 1;
+
+	var insulinSensitivity = pumpSettings.val.insulinSensitivity ||
+								pumpSettings.val.insulinSensitivities;
+	for (var i in insulinSensitivity) {
+
+		var insulinSensitivityRow = {
+			index: index,
+			group: group,
+			sequence: sequence,
+			units: 'mg/dL/unit',
+			amount: insulinSensitivity[i].amount * BG_CONVERSION,
+			start:  insulinSensitivity[i].start,
+			source: pumpSettings.val.source,
+			deviceTime: pumpSettings.val.deviceTime,
+			time: pumpSettings.val.time,
+			timezoneOffset: pumpSettings.val.timezoneOffset,
+			clockDriftOffset: pumpSettings.val.clockDriftOffset,
+			conversionOffset: pumpSettings.val.conversionOffset,
+			id: pumpSettings.val.id,
+			createdTime: pumpSettings.val.createdTime,
+			hash_uploadId: pumpSettings.val.hash_uploadId,
+			hash_groupId: pumpSettings.val.hash_groupId,
+			deviceId: pumpSettings.val.deviceId,
+			payload: JSON.stringify(pumpSettings.val.payload),
+			guid: pumpSettings.val.guid,
+			uploadId: pumpSettings.val.uploadId,
+			_groupId: pumpSettings.val._groupId
+		}
+		sheet.addRow(insulinSensitivityRow);
+		index++;
+		sequence++;
+	}
+}
+
+function processBloodKetoneEvent(lastIndex, bloodKetone) {
 	return {
+		index: (lastIndex === 'Index' ? 1 : (lastIndex+1)),
 		units: bloodKetone.val.units,
 		value: bloodKetone.val.value,
 		clockDriftOffset: bloodKetone.val.clockDriftOffset,
