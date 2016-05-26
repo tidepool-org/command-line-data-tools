@@ -95,7 +95,8 @@ function makeDataQueryRequest(email, types, session_token) {
 		reqBody += types;
 	} else {
 		reqBody += 'basal, bolus, cbg, cgmSettings, deviceEvent, ' +
-					'deviceMeta, pumpSettings, settings, smbg';
+					'deviceMeta, pumpSettings, settings, smbg, '+
+					'upload, wizard';
 	}
 
 	return req = {

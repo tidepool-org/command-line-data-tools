@@ -56,6 +56,12 @@ function convertToWorkbook(callback) {
 	var bloodKetoneSheet = wb.addWorksheet('bloodKetone', 'FFFFC00');
 	bloodKetoneSheet.columns = COL_HEADERS.BLOOD_KETONE_COLS;
 
+	var wizardSheet = wb.addWorksheet('wizard', 'FFC03FF');
+	wizardSheet.columns = COL_HEADERS.WIZARD_COLS;
+
+	var uploadSheet = wb.addWorksheet('upload', '0800000');
+	uploadSheet.columns = COL_HEADERS.UPLOAD_COLS;
+
 	ifs
 		.pipe(jsonStream)
 		.on('data', function(chunk) {
@@ -136,6 +142,21 @@ function processDiaEvent(wb, diaEvent) {
 			processBloodKetoneEvent(
 				bloodKetoneSheet.lastRow.getCell('index').value,
 				diaEvent));
+
+	} else if (diaEvent.val.type === 'wizard') {
+
+		var wizardSheet = wb.getWorksheet('wizard');
+		wizardSheet.addRow(
+			processWizardEvent(
+				wizardSheet.lastRow.getCell('index').value,
+				diaEvent));
+
+	} else if (diaEvent.val.type === 'upload') {
+
+		var uploadSheet = wb.getWorksheet('upload');
+		processUploadEvent(
+			uploadSheet,
+			diaEvent);
 
 	}
 }
@@ -301,7 +322,10 @@ function processBasalSchedules(sheet, pumpSettings) {
 	for (var basalSchedule in basalSchedules) {
 		
 		var sequence = 1;
-
+		// PLEASE VERIFY IN CODE REVIEW
+		// If there are no values for a particular schedule
+		// (i.e. "pattern a":[]) then there will be no rows
+		// representing that particular schedule in the output 
 		for (var i in basalSchedules[basalSchedule]) {
 			var basalScheduleRow = {
 				index: index,
@@ -486,4 +510,150 @@ function processBloodKetoneEvent(lastIndex, bloodKetone) {
 		source: bloodKetone.val.source,
 		payload: JSON.stringify(bloodKetone.val.payload)
 	};
+}
+
+function processWizardEvent(lastIndex, wizard) {
+	if (program.mgdL && wizard.val.units !== 'mg/dL') {
+		wizard.val.units = 'mg/dL';
+		wizard.val.bgInput *= BG_CONVERSION;
+		if (wizard.val.bgTarget.target) 
+			wizard.val.bgTarget.target *= BG_CONVERSION;
+		if (wizard.val.bgTarget.low) 
+			wizard.val.bgTarget.low *= BG_CONVERSION;
+		if (wizard.val.bgTarget.high) 
+			wizard.val.bgTarget.high *= BG_CONVERSION;
+		if (wizard.val.bgTarget.range) 
+			wizard.val.bgTarget.range *= BG_CONVERSION;
+	}
+	return {
+		index: (lastIndex === 'Index' ? 1 : (lastIndex+1)),
+		units: wizard.val.units,
+		bgInput: wizard.val.bgInput,
+		bgTarget: wizard.val.bgTarget.target,
+		bgTargetLow: wizard.val.bgTarget.low,
+		bgTargetHigh: wizard.val.bgTarget.high,
+		bgTargetRange: wizard.val.bgTarget.range,
+		bolus: wizard.val.bolus,
+		carbInput: wizard.val.carbInput,
+		insulinCarbRatio: wizard.val.insulinCarbRatio,
+		insulinOnBoard: wizard.val.insulinOnBoard,
+		insulinSensitivity: wizard.val.insulinSensitivity,
+		recommendedCarb: wizard.val.recommended.carb,
+		recommendedCorrection: wizard.val.recommended.correction,
+		recommendedNet: wizard.val.recommended.net,
+		source: wizard.val.source,
+		deviceTime: wizard.val.deviceTime,
+		time: wizard.val.time,
+		timezoneOffset: wizard.val.timezoneOffset,
+		clockDriftOffset: wizard.val.clockDriftOffset,
+		conversionOffset: wizard.val.conversionOffset,
+		id: wizard.val.id,
+		createdTime: wizard.val.createdTime,
+		hash_uploadId: wizard.val.hash_uploadId,
+		hash_groupId: wizard.val.hash_groupId,
+		deviceId: wizard.val.deviceId,
+		payload: JSON.stringify(wizard.val.payload),
+		guid: wizard.val.guid,
+		uploadId: wizard.val.uploadId,
+		_groupId: wizard.val._groupId
+	};
+}
+
+// 	UPLOAD_COLS: [
+//         { header: 'Index', key: 'index', width: 10 },
+//         { header: 'Group', key: 'group', width: 10 },
+//         { header: 'Uploaded by User', key: 'byUser', width: 10 },
+//         { header: 'Device Manufacturer', key: 'deviceManufacturer', width: 10 },
+//         { header: 'Device Model', key: 'deviceModel', width: 10 },
+//         { header: 'Device Serial Number', key: 'deviceSerialNumber', width: 10 },
+//         { header: 'Device Tag', key: 'deviceTag', width: 10 },
+//         { header: 'Computer Time', key: 'computerTime', width: 10 },
+//         { header: 'Time', key: 'time', width: 10 },
+//         { header: 'Timezone Offset', key: 'timezoneOffset', width: 10 },
+//         { header: 'Conversion Offset', key: 'conversionOffset', width: 10 },
+//         { header: 'Time Processing', key: 'timeProcessing', width: 10 },
+//         { header: 'Id', key: 'id', width: 10 },
+//         { header: 'Created Time', key: 'createdTime', width: 10 },
+//         { header: 'Hash Upload Id', key: 'hash_uploadId', width: 10 },
+//         { header: 'Hash Group Id', key: 'hash_groupId', width: 10 },
+//         { header: 'Payload', key: 'payload', width: 10 },
+//         { header: 'GUID', key: 'guid', width: 10 },
+//         { header: 'Version', key: 'version', width: 10 },
+//         { header: ' ', key: 'uploadId', width: 10 },
+//         { header: ' ', key: '_groupId', width: 10 }
+//     ]
+function processUploadEvent(sheet, upload) {
+
+	var lastIndex = sheet.lastRow.getCell('index').value;
+	var index = (lastIndex === 'Index' ? 1 : (lastIndex+1));
+
+	var lastGroup = sheet.lastRow.getCell('group').value;
+	var group = (lastGroup === 'Group' ? 1 : (lastGroup+1));
+
+	var uploadRow;
+	if (upload.val.deviceModel === 'multiple') {
+
+		for (var i in upload.val.payload.devices) {
+
+			uploadRow = {
+				index: index,
+				group: group,
+				byUser: upload.val.byUser,
+				deviceManufacturer: upload.val.deviceManufacturers[0],
+				deviceModel: upload.val.payload.devices[i].deviceModel,
+				deviceSerialNumber: upload.val.payload.devices[i].deviceSerialNumber,
+				deviceTag: upload.val.deviceTags[0],
+				computerTime: upload.val.computerTime,
+				time: upload.val.time,
+				timezoneOffset: upload.val.timezoneOffset,
+				conversionOffset: upload.val.conversionOffset,
+				timeProcessing: upload.val.timeProcessing,
+				id: upload.val.id,
+				createdTime: upload.val.createdTime,
+				hash_uploadId: upload.val.hash_uploadId,
+				hash_groupId: upload.val.hash_groupId,
+				payload: JSON.stringify(upload.val.payload),
+				guid: upload.val.guid,
+				version: upload.val.version,
+				uploadId: upload.val.uploadId,
+				_groupId: upload.val._groupId
+			};
+
+			sheet.addRow(uploadRow);
+
+			index++;
+		}
+
+	} else {
+
+		var uploadRow = {
+			index: index,
+			group: group,
+			byUser: upload.val.byUser,
+			deviceManufacturer: upload.val.deviceManufacturers[0],
+			deviceModel: upload.val.deviceModel,
+			// Some devices (such as HealthKit_DexG5) do not have a
+			// serial number, so it is possible for the deviceSN to
+			// be null.
+			deviceSerialNumber: upload.val.deviceSerialNumber || null,
+			deviceTag: upload.val.deviceTags[0],
+			computerTime: upload.val.computerTime,
+			time: upload.val.time,
+			timezoneOffset: upload.val.timezoneOffset,
+			conversionOffset: upload.val.conversionOffset,
+			timeProcessing: upload.val.timeProcessing,
+			id: upload.val.id,
+			createdTime: upload.val.createdTime,
+			hash_uploadId: upload.val.hash_uploadId,
+			hash_groupId: upload.val.hash_groupId,
+			payload: JSON.stringify(upload.val.payload),
+			guid: upload.val.guid,
+			version: upload.val.version,
+			uploadId: upload.val.uploadId,
+			_groupId: upload.val._groupId
+		};
+
+		sheet.addRow(uploadRow);
+	}
+
 }
