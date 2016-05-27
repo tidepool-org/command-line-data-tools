@@ -62,6 +62,11 @@ function convertToWorkbook(callback) {
 		var bolusSheet = wb.addWorksheet('bolus', '00CFC00');
 		bolusSheet.columns = COL_HEADERS.BOLUS_COLS;
 	}
+
+	if (program.all || program.basal) {
+		var basalSheet = wb.addWorksheet('basal', '0808000');
+		basalSheet.columns = COL_HEADERS.BASAL_COLS;
+	}
 	
 	if (program.all || program.basalSchedules) {
 		var basalScheduleSheet = wb.addWorksheet('basalSchedules', '0068600');
@@ -173,6 +178,14 @@ function processDiaEvent(wb, diaEvent) {
 			processBolusEvent(
 				bolusSheet.lastRow.getCell('index').value,
 				diaEvent));
+
+	} else if ((program.all || program.basal) &&
+		diaEvent.val.type === 'basal') {
+
+		var basalSheet = wb.getWorksheet('basal');
+		processBasalEvent(
+			basalSheet,
+			diaEvent);
 
 	} else if (diaEvent.val.type === 'pumpSettings') {
 		
@@ -342,32 +355,79 @@ function processBolusEvent(lastIndex, bolus) {
 	};
 }
 
-function processPumpSettingsEvent(ws, pumpSettings) {
+function processBasalEvent(sheet, basal) {
+
+	var lastIndex = sheet.lastRow.getCell('index').value;
+	var index = (lastIndex === 'Index' ? 1 : (lastIndex+1));
+
+	var lastGroup = sheet.lastRow.getCell('group').value;
+	var group = (lastGroup === 'Group' ? 1 : (lastGroup+1));
+
+	addBasalRow(sheet, basal.val, index, group, null);
+}
+
+function addBasalRow(sheet, basal, index, group, suppressed) {
+	if (!basal) return;
+
+	var basalRow = {
+		index: index,
+		group: group,
+		suppressed: suppressed,
+		deliveryType: basal.deliveryType,
+		duration: basal.duration,
+		expectedDuration: basal.expectedDuration,
+		percent: basal.percent,
+		rate: basal.rate,
+		units: 'units/hour',
+		scheduleName: basal.scheduleName,
+		source: basal.source,
+		deviceTime: basal.deviceTime,
+		time: basal.time,
+		timezoneOffset: basal.timezoneOffset,
+		clockDriftOffset: basal.clockDriftOffset,
+		conversionOffset: basal.conversionOffset,
+		id: basal.id,
+		createdTime: basal.createdTime,
+		hash_uploadId: basal.hash_uploadId,
+		hash_groupId: basal.hash_groupId,
+		deviceId: basal.deviceId,
+		payload: JSON.stringify(basal.payload),
+		guid: basal.guid,
+		uploadId: basal.uploadId,
+		_groupId: basal._groupId
+	};
+
+	sheet.addRow(basalRow);
+
+	addBasalRow(sheet, basal.suppressed, index+1, group, 'true');
+}
+
+function processPumpSettingsEvent(wb, pumpSettings) {
 
 	// Basal Schedules
 	if (program.all || program.basalSchedules) {
-		var basalSchedulesSheet = ws.getWorksheet('basalSchedules');
+		var basalSchedulesSheet = wb.getWorksheet('basalSchedules');
 		processBasalSchedules(basalSchedulesSheet,
 								pumpSettings);
 	}
 	
 	// BG Targets
 	if (program.all || program.bgTarget) {
-		var bgTargetSheet = ws.getWorksheet('bgTarget');
+		var bgTargetSheet = wb.getWorksheet('bgTarget');
 		processBgTarget(bgTargetSheet,
 						pumpSettings);
 	}
 
 	// Carb Ratios
 	if (program.all || program.carbRatio) {
-		var carbRatioSheet = ws.getWorksheet('carbRatio');
+		var carbRatioSheet = wb.getWorksheet('carbRatio');
 		processCarbRatio(carbRatioSheet,
 							pumpSettings);		
 	}
 
 	//Insulin Sensitivities
 	if (program.all || program.insulinSensitivity) {
-		var insulinSensitivitySheet = ws.getWorksheet('insulinSensitivity');
+		var insulinSensitivitySheet = wb.getWorksheet('insulinSensitivity');
 		processInsulinSensitivity(insulinSensitivitySheet,
 									pumpSettings);
 	}

@@ -17,8 +17,8 @@ module.exports.COL_HEADERS = {
         { header: 'Hash Group Id', key: 'hash_groupId', width: 10 },
         { header: 'Payload', key: 'payload', width: 10 },
         { header: 'GUID', key: 'guid', width: 10 },
-        { header: ' ', key: 'uploadId', width: 10 },
-        { header: ' ', key: '_groupId', width: 10 }
+        { header: null, key: 'uploadId', width: 10 },
+        { header: null, key: '_groupId', width: 10 }
     ],
 
     CBG_COLS: [
@@ -38,8 +38,8 @@ module.exports.COL_HEADERS = {
         { header: 'Hash Group Id', key: 'hash_groupId', width: 10 },
         { header: 'Payload', key: 'payload', width: 10 },
         { header: 'GUID', key: 'guid', width: 10 },
-        { header: ' ', key: 'uploadId', width: 10 },
-        { header: ' ', key: '_groupId', width: 10 }
+        { header: null, key: 'uploadId', width: 10 },
+        { header: null, key: '_groupId', width: 10 }
     ],
 
     BOLUS_COLS: [
@@ -64,8 +64,8 @@ module.exports.COL_HEADERS = {
         { header: 'Hash Group Id', key: 'hash_groupId', width: 10 },
         { header: 'Payload', key: 'payload', width: 10 },
         { header: 'GUID', key: 'guid', width: 10 },
-        { header: ' ', key: 'uploadId', width: 10 },
-        { header: ' ', key: '_groupId', width: 10 }
+        { header: null, key: 'uploadId', width: 10 },
+        { header: null, key: '_groupId', width: 10 }
     ],
 
     BLOOD_KETONE_COLS: [
@@ -85,8 +85,8 @@ module.exports.COL_HEADERS = {
         { header: 'Hash Group Id', key: 'hash_groupId', width: 10 },
         { header: 'Payload', key: 'payload', width: 10 },
         { header: 'GUID', key: 'guid', width: 10 },
-        { header: ' ', key: 'uploadId', width: 10 },
-        { header: ' ', key: '_groupId', width: 10 }
+        { header: null, key: 'uploadId', width: 10 },
+        { header: null, key: '_groupId', width: 10 }
     ],
 
     CGM_SETTINGS_COLS: [
@@ -118,8 +118,8 @@ module.exports.COL_HEADERS = {
         { header: 'Hash Group Id', key: 'hash_groupId', width: 10 },
         { header: 'Payload', key: 'payload', width: 10 },
         { header: 'GUID', key: 'guid', width: 10 },
-        { header: ' ', key: 'uploadId', width: 10 },
-        { header: ' ', key: '_groupId', width: 10 }
+        { header: null, key: 'uploadId', width: 10 },
+        { header: null, key: '_groupId', width: 10 }
     ],
 
     BASAL_SCHEDULE_COLS: [
@@ -144,8 +144,8 @@ module.exports.COL_HEADERS = {
         { header: 'Hash Group Id', key: 'hash_groupId', width: 10 },
         { header: 'Payload', key: 'payload', width: 10 },
         { header: 'GUID', key: 'guid', width: 10 },
-        { header: ' ', key: 'uploadId', width: 10 },
-        { header: ' ', key: '_groupId', width: 10 }
+        { header: null, key: 'uploadId', width: 10 },
+        { header: null, key: '_groupId', width: 10 }
     ],
 
     BG_TARGET_COLS: [
@@ -169,8 +169,8 @@ module.exports.COL_HEADERS = {
         { header: 'Hash Group Id', key: 'hash_groupId', width: 10 },
         { header: 'Payload', key: 'payload', width: 10 },
         { header: 'GUID', key: 'guid', width: 10 },
-        { header: ' ', key: 'uploadId', width: 10 },
-        { header: ' ', key: '_groupId', width: 10 }
+        { header: null, key: 'uploadId', width: 10 },
+        { header: null, key: '_groupId', width: 10 }
     ],
 
     CARB_RATIO_COLS: [
@@ -193,8 +193,8 @@ module.exports.COL_HEADERS = {
         { header: 'Hash Group Id', key: 'hash_groupId', width: 10 },
         { header: 'Payload', key: 'payload', width: 10 },
         { header: 'GUID', key: 'guid', width: 10 },
-        { header: ' ', key: 'uploadId', width: 10 },
-        { header: ' ', key: '_groupId', width: 10 }
+        { header: null, key: 'uploadId', width: 10 },
+        { header: null, key: '_groupId', width: 10 }
     ],
 
     INSULIN_SENSITIVITY_COLS: [
@@ -217,8 +217,8 @@ module.exports.COL_HEADERS = {
         { header: 'Hash Group Id', key: 'hash_groupId', width: 10 },
         { header: 'Payload', key: 'payload', width: 10 },
         { header: 'GUID', key: 'guid', width: 10 },
-        { header: ' ', key: 'uploadId', width: 10 },
-        { header: ' ', key: '_groupId', width: 10 }
+        { header: null, key: 'uploadId', width: 10 },
+        { header: null, key: '_groupId', width: 10 }
     ],
 
     WIZARD_COLS: [
@@ -250,8 +250,8 @@ module.exports.COL_HEADERS = {
         { header: 'Hash Group Id', key: 'hash_groupId', width: 10 },
         { header: 'Payload', key: 'payload', width: 10 },
         { header: 'GUID', key: 'guid', width: 10 },
-        { header: ' ', key: 'uploadId', width: 10 },
-        { header: ' ', key: '_groupId', width: 10 }
+        { header: null, key: 'uploadId', width: 10 },
+        { header: null, key: '_groupId', width: 10 }
     ],
 
     UPLOAD_COLS: [
@@ -274,8 +274,8 @@ module.exports.COL_HEADERS = {
         { header: 'Payload', key: 'payload', width: 10 },
         { header: 'GUID', key: 'guid', width: 10 },
         { header: 'Version', key: 'version', width: 10 },
-        { header: ' ', key: 'uploadId', width: 10 },
-        { header: ' ', key: '_groupId', width: 10 }
+        { header: null, key: 'uploadId', width: 10 },
+        { header: null, key: '_groupId', width: 10 }
     ],
 
     DEVICE_EVENT_COLS: [
@@ -310,14 +310,14 @@ module.exports.COL_HEADERS = {
         { header: 'Hash Group Id', key: 'hash_groupId', width: 10 },
         { header: 'Payload', key: 'payload', width: 10 },
         { header: 'GUID', key: 'guid', width: 10 },
-        { header: ' ', key: 'uploadId', width: 10 },
-        { header: ' ', key: '_groupId', width: 10 }
+        { header: null, key: 'uploadId', width: 10 },
+        { header: null, key: '_groupId', width: 10 }
     ],
 
     BASAL_COLS: [
         { header: 'Index', key: 'index', width: 10 },
         { header: 'Group', key: 'group', width: 10 },
-        { header: 'Supressed', key: 'supressed', width: 10 },
+        { header: 'Suppressed', key: 'suppressed', width: 10 },
         { header: 'Delivery Type', key: 'deliveryType', width: 10 },
         { header: 'Duration', key: 'duration', width: 10 },
         { header: 'Expected Duration', key: 'expectedDuration', width: 10 },
@@ -338,7 +338,7 @@ module.exports.COL_HEADERS = {
         { header: 'Hash Group Id', key: 'hash_groupId', width: 10 },
         { header: 'Payload', key: 'payload', width: 10 },
         { header: 'GUID', key: 'guid', width: 10 },
-        { header: ' ', key: 'uploadId', width: 10 },
-        { header: ' ', key: '_groupId', width: 10 }
+        { header: null, key: 'uploadId', width: 10 },
+        { header: null, key: '_groupId', width: 10 }
     ]
 };
