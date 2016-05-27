@@ -62,6 +62,9 @@ function convertToWorkbook(callback) {
 	var uploadSheet = wb.addWorksheet('upload', '0800000');
 	uploadSheet.columns = COL_HEADERS.UPLOAD_COLS;
 
+	var deviceEventSheet = wb.addWorksheet('deviceEvent', '000FFFF');
+	deviceEventSheet.columns = COL_HEADERS.DEVICE_EVENT_COLS;
+
 	ifs
 		.pipe(jsonStream)
 		.on('data', function(chunk) {
@@ -156,6 +159,13 @@ function processDiaEvent(wb, diaEvent) {
 		var uploadSheet = wb.getWorksheet('upload');
 		processUploadEvent(
 			uploadSheet,
+			diaEvent);
+
+	} else if (diaEvent.val.type === 'deviceEvent') {
+		
+		var deviceEventSheet = wb.getWorksheet('deviceEvent');
+		processDeviceEvent(
+			deviceEventSheet,
 			diaEvent);
 
 	}
@@ -559,29 +569,6 @@ function processWizardEvent(lastIndex, wizard) {
 	};
 }
 
-// 	UPLOAD_COLS: [
-//         { header: 'Index', key: 'index', width: 10 },
-//         { header: 'Group', key: 'group', width: 10 },
-//         { header: 'Uploaded by User', key: 'byUser', width: 10 },
-//         { header: 'Device Manufacturer', key: 'deviceManufacturer', width: 10 },
-//         { header: 'Device Model', key: 'deviceModel', width: 10 },
-//         { header: 'Device Serial Number', key: 'deviceSerialNumber', width: 10 },
-//         { header: 'Device Tag', key: 'deviceTag', width: 10 },
-//         { header: 'Computer Time', key: 'computerTime', width: 10 },
-//         { header: 'Time', key: 'time', width: 10 },
-//         { header: 'Timezone Offset', key: 'timezoneOffset', width: 10 },
-//         { header: 'Conversion Offset', key: 'conversionOffset', width: 10 },
-//         { header: 'Time Processing', key: 'timeProcessing', width: 10 },
-//         { header: 'Id', key: 'id', width: 10 },
-//         { header: 'Created Time', key: 'createdTime', width: 10 },
-//         { header: 'Hash Upload Id', key: 'hash_uploadId', width: 10 },
-//         { header: 'Hash Group Id', key: 'hash_groupId', width: 10 },
-//         { header: 'Payload', key: 'payload', width: 10 },
-//         { header: 'GUID', key: 'guid', width: 10 },
-//         { header: 'Version', key: 'version', width: 10 },
-//         { header: ' ', key: 'uploadId', width: 10 },
-//         { header: ' ', key: '_groupId', width: 10 }
-//     ]
 function processUploadEvent(sheet, upload) {
 
 	var lastIndex = sheet.lastRow.getCell('index').value;
@@ -654,6 +641,135 @@ function processUploadEvent(sheet, upload) {
 		};
 
 		sheet.addRow(uploadRow);
+	}
+
+}
+
+function processDeviceEvent(sheet, deviceEvent) {
+
+	var lastIndex = sheet.lastRow.getCell('index').value;
+	var index = (lastIndex === 'Index' ? 1 : (lastIndex+1));
+
+	var lastGroup = sheet.lastRow.getCell('group').value;
+	var group = (lastGroup === 'Group' ? 1 : (lastGroup+1));
+
+	if (deviceEvent.val.subType === 'status') {
+
+		var deviceEventRow = {
+			index: index,
+			group: group,
+			subType: deviceEvent.val.subType,
+			status: deviceEvent.val.status,
+			duration: deviceEvent.val.duration,
+			expectedDuration: deviceEvent.val.expectedDuration,
+			reasonSuspended: deviceEvent.val.reason.suspended,
+			reasonResumed: deviceEvent.val.reason.resumed,
+			source: deviceEvent.val.source,
+			deviceTime: deviceEvent.val.deviceTime,
+			time: deviceEvent.val.time,
+			timezoneOffset: deviceEvent.val.timezoneOffset,
+			clockDriftOffset: deviceEvent.val.clockDriftOffset,
+			conversionOffset: deviceEvent.val.conversionOffset,
+			id: deviceEvent.val.id,
+			createdTime: deviceEvent.val.createdTime,
+			hash_uploadId: deviceEvent.val.hash_uploadId,
+			hash_groupId: deviceEvent.val.hash_groupId,
+			deviceId: deviceEvent.val.deviceId,
+			payload: JSON.stringify(deviceEvent.val.payload),
+			guid: deviceEvent.val.guid,
+			uploadId: deviceEvent.val.uploadId,
+			_groupId: deviceEvent.val._groupId
+		};
+
+		sheet.addRow(deviceEventRow);
+
+	} else {
+
+		if (program.mgdL 
+			&& typeof deviceEvent.val.units === 'string'
+			&& deviceEvent.val.units !== 'mg/dL') {
+			
+			deviceEvent.val.units = 'mg/dL';
+			deviceEvent.val.value *= BG_CONVERSION;
+		}
+
+		var deviceEventRow = {
+			index: index,
+			group: group,
+			subType: deviceEvent.val.subType,
+			alarmType: deviceEvent.val.alarmType,
+			units: deviceEvent.val.units,
+			value: deviceEvent.val.value,
+			volume: deviceEvent.val.volume,
+   			timeChangeFrom: 
+   				deviceEvent.val.change ? 
+   					deviceEvent.val.change.from : null,
+   			timeChangeTo:  
+   				deviceEvent.val.change ? 
+   					deviceEvent.val.change.to : null,
+   			timeChangeAgent:  
+   				deviceEvent.val.change ? 
+   					deviceEvent.val.change.agent : null,
+   			timeChangeReasons:  
+   				(deviceEvent.val.change
+   				&& deviceEvent.val.change.reasons) ? 
+   					deviceEvent.val.change.reasons.toString() : null,
+   			timeChangeTimezone:  
+   				deviceEvent.val.change ? 
+   					deviceEvent.val.change.timezone : null,
+			primeTarget: deviceEvent.val.primeTarget,
+			source: deviceEvent.val.source,
+			deviceTime: deviceEvent.val.deviceTime,
+			time: deviceEvent.val.time,
+			timezoneOffset: deviceEvent.val.timezoneOffset,
+			clockDriftOffset: deviceEvent.val.clockDriftOffset,
+			conversionOffset: deviceEvent.val.conversionOffset,
+			id: deviceEvent.val.id,
+			createdTime: deviceEvent.val.createdTime,
+			hash_uploadId: deviceEvent.val.hash_uploadId,
+			hash_groupId: deviceEvent.val.hash_groupId,
+			deviceId: deviceEvent.val.deviceId,
+			payload: JSON.stringify(deviceEvent.val.payload),
+			guid: deviceEvent.val.guid,
+			uploadId: deviceEvent.val.uploadId,
+			_groupId: deviceEvent.val._groupId
+		}
+
+		sheet.addRow(deviceEventRow);
+
+		if (typeof deviceEvent.val.status === 'string') {
+			sheet.lastRow.getCell('status').value = deviceEvent.val.status;
+		} else if (typeof deviceEvent.val.status === 'object') {
+			index++;
+
+			var statusEventRow = {
+				index: index,
+				group: group,
+				subType: deviceEvent.val.status.subType,
+				status: deviceEvent.val.status.status,
+				duration: deviceEvent.val.status.duration,
+				expectedDuration: deviceEvent.val.status.expectedDuration,
+				reasonSuspended: deviceEvent.val.status.reason.suspended,
+				reasonResumed: deviceEvent.val.status.reason.resumed,
+				source: deviceEvent.val.status.source,
+				deviceTime: deviceEvent.val.status.deviceTime,
+				time: deviceEvent.val.status.time,
+				timezoneOffset: deviceEvent.val.status.timezoneOffset,
+				clockDriftOffset: deviceEvent.val.status.clockDriftOffset,
+				conversionOffset: deviceEvent.val.status.conversionOffset,
+				id: deviceEvent.val.status.id,
+				createdTime: deviceEvent.val.status.createdTime,
+				hash_uploadId: deviceEvent.val.status.hash_uploadId,
+				hash_groupId: deviceEvent.val.status.hash_groupId,
+				deviceId: deviceEvent.val.status.deviceId,
+				payload: JSON.stringify(deviceEvent.val.status.payload),
+				guid: deviceEvent.val.status.guid,
+				uploadId: deviceEvent.val.status.uploadId,
+				_groupId: deviceEvent.val.status._groupId
+			};
+
+			sheet.addRow(statusEventRow);
+		}
 	}
 
 }
