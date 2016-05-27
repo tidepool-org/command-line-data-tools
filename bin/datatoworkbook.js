@@ -13,6 +13,20 @@ program
 	.option('-i, --input <input>', 'path/to/input.json')
 	.option('-o, --output <output>', 'path/to/output.xlsx')
 	.option('--mgdL', 'Convert all BG values to mg/dL.')
+	.option('-a, --all', 'Create all pages.')
+	.option('--smbg', 'Create smbg page.')
+	.option('--cbg', 'Create cbg page.')
+	.option('--cgmSettings', 'Create cgm settings page.')
+	.option('--bolus', 'Create bolus page.')
+	.option('--basal', 'Create basal page.')
+	.option('--basalSchedules', 'Create basal schedules page.')
+	.option('--bgTarget', 'Create BG target page.')
+	.option('--carbRatio', 'Create carb ratio page.')
+	.option('--insulinSensitivity', 'Create insulin sensitivity page.')
+	.option('--bloodKetone', 'Create blood ketone page.')
+	.option('--wizard', 'Create wizard page.')
+	.option('--upload', 'Create upload page.')
+	.option('--deviceEvent', 'Create device event page.')
 	.option('-v, --verbose', 'Verbose output.')
 	.parse(process.argv);
 
@@ -29,41 +43,65 @@ function convertToWorkbook(callback) {
 
 	var wb = makeWorkbook();
 	
-	var smbgSheet = wb.addWorksheet('smbg', 'FFC0000');
-	smbgSheet.columns = COL_HEADERS.SMBG_COLS;
+	if (program.all || program.smbg) {
+		var smbgSheet = wb.addWorksheet('smbg', 'FFC0000');
+		smbgSheet.columns = COL_HEADERS.SMBG_COLS;
+	}
 	
-	var cbgSheet = wb.addWorksheet('cbg', '0000CFF');
-	cbgSheet.columns = COL_HEADERS.CBG_COLS;
-	
-	var cgmSettingsSheet = wb.addWorksheet('cgmSettings', '0000688');
-	cgmSettingsSheet.columns = COL_HEADERS.CGM_SETTINGS_COLS;
-	
-	var bolusSheet = wb.addWorksheet('bolus', '00CFC00');
-	bolusSheet.columns = COL_HEADERS.BOLUS_COLS;
-	
-	var basalScheduleSheet = wb.addWorksheet('basalSchedules', '0068600');
-	basalScheduleSheet.columns = COL_HEADERS.BASAL_SCHEDULE_COLS;
+	if (program.all || program.cbg) {
+		var cbgSheet = wb.addWorksheet('cbg', '0000CFF');
+		cbgSheet.columns = COL_HEADERS.CBG_COLS;		
+	}
 
-	var bgTargetSheet = wb.addWorksheet('bgTarget', '0068600');
-	bgTargetSheet.columns = COL_HEADERS.BG_TARGET_COLS;
+	if (program.all || program.cgmSettings) {
+		var cgmSettingsSheet = wb.addWorksheet('cgmSettings', '0000688');
+		cgmSettingsSheet.columns = COL_HEADERS.CGM_SETTINGS_COLS;
+	}
 	
-	var carbRatioSheet = wb.addWorksheet('carbRatio', '0068600');
-	carbRatioSheet.columns = COL_HEADERS.CARB_RATIO_COLS;
+	if (program.all || program.bolus) {
+		var bolusSheet = wb.addWorksheet('bolus', '00CFC00');
+		bolusSheet.columns = COL_HEADERS.BOLUS_COLS;
+	}
 	
-	var insulinSensitivitySheet = wb.addWorksheet('insulinSensitivity', '0068600');
-	insulinSensitivitySheet.columns = COL_HEADERS.INSULIN_SENSITIVITY_COLS;
+	if (program.all || program.basalSchedules) {
+		var basalScheduleSheet = wb.addWorksheet('basalSchedules', '0068600');
+		basalScheduleSheet.columns = COL_HEADERS.BASAL_SCHEDULE_COLS;
+	}
+
+	if (program.all || program.bgTarget) {
+		var bgTargetSheet = wb.addWorksheet('bgTarget', '0068600');
+		bgTargetSheet.columns = COL_HEADERS.BG_TARGET_COLS;
+	}
 	
-	var bloodKetoneSheet = wb.addWorksheet('bloodKetone', 'FFFFC00');
-	bloodKetoneSheet.columns = COL_HEADERS.BLOOD_KETONE_COLS;
+	if (program.all || program.carbRatio) {
+		var carbRatioSheet = wb.addWorksheet('carbRatio', '0068600');
+		carbRatioSheet.columns = COL_HEADERS.CARB_RATIO_COLS;
+	}
 
-	var wizardSheet = wb.addWorksheet('wizard', 'FFC03FF');
-	wizardSheet.columns = COL_HEADERS.WIZARD_COLS;
+	if (program.all || program.insulinSensitivity) {
+		var insulinSensitivitySheet = wb.addWorksheet('insulinSensitivity', '0068600');
+		insulinSensitivitySheet.columns = COL_HEADERS.INSULIN_SENSITIVITY_COLS;
+	}
+	
+	if (program.all || program.bloodKetone) {
+		var bloodKetoneSheet = wb.addWorksheet('bloodKetone', 'FFFFC00');
+		bloodKetoneSheet.columns = COL_HEADERS.BLOOD_KETONE_COLS;
+	}
 
-	var uploadSheet = wb.addWorksheet('upload', '0800000');
-	uploadSheet.columns = COL_HEADERS.UPLOAD_COLS;
+	if (program.all || program.wizard) {
+		var wizardSheet = wb.addWorksheet('wizard', 'FFC03FF');
+		wizardSheet.columns = COL_HEADERS.WIZARD_COLS;
+	}
 
-	var deviceEventSheet = wb.addWorksheet('deviceEvent', '000FFFF');
-	deviceEventSheet.columns = COL_HEADERS.DEVICE_EVENT_COLS;
+	if (program.all || program.upload) {
+		var uploadSheet = wb.addWorksheet('upload', '0800000');
+		uploadSheet.columns = COL_HEADERS.UPLOAD_COLS;
+	}
+
+	if (program.all || program.deviceEvent) {
+		var deviceEventSheet = wb.addWorksheet('deviceEvent', '000FFFF');
+		deviceEventSheet.columns = COL_HEADERS.DEVICE_EVENT_COLS;
+	}
 
 	ifs
 		.pipe(jsonStream)
@@ -100,7 +138,8 @@ function makeWorkbook() {
 
 
 function processDiaEvent(wb, diaEvent) {
-	if (diaEvent.val.type === 'smbg') {
+	if ((program.all || program.smbg) &&
+		diaEvent.val.type === 'smbg') {
 		
 		var smbgSheet = wb.getWorksheet('smbg');
 		smbgSheet.addRow(
@@ -108,7 +147,8 @@ function processDiaEvent(wb, diaEvent) {
 				smbgSheet.lastRow.getCell('index').value,
 				diaEvent));
 
-	} else if (diaEvent.val.type === 'cbg') {
+	} else if ((program.all || program.cbg) &&
+		diaEvent.val.type === 'cbg') {
 		
 		var cbgSheet = wb.getWorksheet('cbg');
 		cbgSheet.addRow(
@@ -116,7 +156,8 @@ function processDiaEvent(wb, diaEvent) {
 				cbgSheet.lastRow.getCell('index').value,
 				diaEvent));
 
-	} else if (diaEvent.val.type === 'cgmSettings'){
+	} else if ((program.all || program.cgmSettings) &&
+		diaEvent.val.type === 'cgmSettings'){
 		
 		var cgmSettingsSheet = wb.getWorksheet('cgmSettings');
 		cgmSettingsSheet.addRow(
@@ -124,7 +165,8 @@ function processDiaEvent(wb, diaEvent) {
 				cgmSettingsSheet.lastRow.getCell('index').value,
 				diaEvent));
 
-	} else if (diaEvent.val.type === 'bolus') {
+	} else if ((program.all || program.bolus) &&
+		diaEvent.val.type === 'bolus') {
 		
 		var bolusSheet = wb.getWorksheet('bolus');
 		bolusSheet.addRow(
@@ -138,7 +180,8 @@ function processDiaEvent(wb, diaEvent) {
 			wb,
 			diaEvent);
 
-	} else if (diaEvent.val.type === 'bloodKetone') {
+	} else if ((program.all || program.bloodKetone) &&
+		diaEvent.val.type === 'bloodKetone') {
 		
 		var bloodKetoneSheet = wb.getWorksheet('bloodKetone');
 		bloodKetoneSheet.addRow(
@@ -146,7 +189,8 @@ function processDiaEvent(wb, diaEvent) {
 				bloodKetoneSheet.lastRow.getCell('index').value,
 				diaEvent));
 
-	} else if (diaEvent.val.type === 'wizard') {
+	} else if ((program.all || program.wizard) &&
+		diaEvent.val.type === 'wizard') {
 
 		var wizardSheet = wb.getWorksheet('wizard');
 		wizardSheet.addRow(
@@ -154,14 +198,16 @@ function processDiaEvent(wb, diaEvent) {
 				wizardSheet.lastRow.getCell('index').value,
 				diaEvent));
 
-	} else if (diaEvent.val.type === 'upload') {
+	} else if ((program.all || program.upload) && 
+		diaEvent.val.type === 'upload') {
 
 		var uploadSheet = wb.getWorksheet('upload');
 		processUploadEvent(
 			uploadSheet,
 			diaEvent);
 
-	} else if (diaEvent.val.type === 'deviceEvent') {
+	} else if ((program.all || program.deviceEvent) &&
+		diaEvent.val.type === 'deviceEvent') {
 		
 		var deviceEventSheet = wb.getWorksheet('deviceEvent');
 		processDeviceEvent(
@@ -299,24 +345,32 @@ function processBolusEvent(lastIndex, bolus) {
 function processPumpSettingsEvent(ws, pumpSettings) {
 
 	// Basal Schedules
-	var basalSchedulesSheet = ws.getWorksheet('basalSchedules');
-	processBasalSchedules(basalSchedulesSheet,
-							pumpSettings);
-
+	if (program.all || program.basalSchedules) {
+		var basalSchedulesSheet = ws.getWorksheet('basalSchedules');
+		processBasalSchedules(basalSchedulesSheet,
+								pumpSettings);
+	}
+	
 	// BG Targets
-	var bgTargetSheet = ws.getWorksheet('bgTarget');
-	processBgTarget(bgTargetSheet,
-					pumpSettings);
+	if (program.all || program.bgTarget) {
+		var bgTargetSheet = ws.getWorksheet('bgTarget');
+		processBgTarget(bgTargetSheet,
+						pumpSettings);
+	}
 
 	// Carb Ratios
-	var carbRatioSheet = ws.getWorksheet('carbRatio');
-	processCarbRatio(carbRatioSheet,
-						pumpSettings);
+	if (program.all || program.carbRatio) {
+		var carbRatioSheet = ws.getWorksheet('carbRatio');
+		processCarbRatio(carbRatioSheet,
+							pumpSettings);		
+	}
 
 	//Insulin Sensitivities
-	var insulinSensitivitySheet = ws.getWorksheet('insulinSensitivity');
-	processInsulinSensitivity(insulinSensitivitySheet,
-								pumpSettings);
+	if (program.all || program.insulinSensitivity) {
+		var insulinSensitivitySheet = ws.getWorksheet('insulinSensitivity');
+		processInsulinSensitivity(insulinSensitivitySheet,
+									pumpSettings);
+	}
 }
 
 function processBasalSchedules(sheet, pumpSettings) {
@@ -383,13 +437,22 @@ function processBgTarget(sheet, pumpSettings, units) {
 					pumpSettings.val.bgTargets;
 	for (var i in bgTarget) {
 
+		var units;
+		if (program.mgdL) {
+			units = 'mg/dL';
+			bgTarget[i].high *= BG_CONVERSION;
+			bgTarget[i].low *= BG_CONVERSION;
+		} else {
+			units = 'mmol/L';
+		}
+
 		var bgTargetRow = {
 			index: index,
 			group: group,
 			sequence: sequence,
-			units: 'mg/dL',
-			high: bgTarget[i].high * BG_CONVERSION,
-			low: bgTarget[i].low * BG_CONVERSION,
+			units: units,
+			high: bgTarget[i].high,
+			low: bgTarget[i].low,
 			start:  bgTarget[i].start,
 			source: pumpSettings.val.source,
 			deviceTime: pumpSettings.val.deviceTime,
@@ -468,14 +531,22 @@ function processInsulinSensitivity(sheet, pumpSettings) {
 
 	var insulinSensitivity = pumpSettings.val.insulinSensitivity ||
 								pumpSettings.val.insulinSensitivities;
+
 	for (var i in insulinSensitivity) {
+		var units;
+		if (program.mgdL) {
+			units = 'mg/dL/unit';
+			insulinSensitivity[i].amount *= BG_CONVERSION;
+		} else {
+			units = 'mmol/L/unit';
+		}
 
 		var insulinSensitivityRow = {
 			index: index,
 			group: group,
 			sequence: sequence,
-			units: 'mg/dL/unit',
-			amount: insulinSensitivity[i].amount * BG_CONVERSION,
+			units: units,
+			amount: insulinSensitivity[i].amount,
 			start:  insulinSensitivity[i].start,
 			source: pumpSettings.val.source,
 			deviceTime: pumpSettings.val.deviceTime,
@@ -534,6 +605,7 @@ function processWizardEvent(lastIndex, wizard) {
 			wizard.val.bgTarget.high *= BG_CONVERSION;
 		if (wizard.val.bgTarget.range) 
 			wizard.val.bgTarget.range *= BG_CONVERSION;
+		wizard.val.insulinSensitivity *= BG_CONVERSION;
 	}
 	return {
 		index: (lastIndex === 'Index' ? 1 : (lastIndex+1)),
