@@ -41,7 +41,16 @@ function convertToWorkbook(callback) {
 
 	var jsonStream = JSONStream.parse();
 
-	var wb = makeWorkbook();
+	if (program.all || program.smbg || program.cbg || program.cgmSettings
+		|| program.bolus || program.basal || program.basalSchedules
+		|| program.bgTarget || program.carbRatio || program.insulinSensitivity
+		|| program.bloodKetone || program.wizard || program.upload
+		|| program.deviceEvent) {
+		var wb = makeWorkbook();
+	} else {
+		console.error(chalk.red.bold('Must select at lease one data type.'));
+		process.exit(1);
+	}
 	
 	if (program.all || program.smbg) {
 		var smbgSheet = wb.addWorksheet('smbg', 'FFC0000');

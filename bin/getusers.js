@@ -11,6 +11,10 @@ program
     .version('0.0.1')
     .arguments('<email>')
     .option('-o, --output <output>', 'path/to/output.json')
+    .option('--dev', 'Use development server. Default server is production.')
+    .option('--stg', 'Use staging server. Default server is production.')
+    .option('--int', 'Use integration server. Default server is production.')
+    .option('--clinic', 'Use clinic server. Default server is production.')
     .option('-v, --verbose', 'Verbose output.')
     .action(function(email) {
 	    
@@ -20,7 +24,8 @@ program
 	    })
 	    
 	    .then(function() {
-			var url = makeLoginRequestUrl(email, password);
+	    	var env = getEnvironment();
+			var url = makeLoginRequestUrl(email, password, env);
 			request.post({url: url},
 				function(error, response, body) {
 
@@ -34,7 +39,8 @@ program
 
 					var user_id = JSON.parse(body).userid;
 					var req = makeUserAccessRequest(user_id, response
-												.headers['x-tidepool-session-token']);
+												.headers['x-tidepool-session-token'],
+												env);
 
 					request.get(req, function(error, response, body) {
 
@@ -64,6 +70,14 @@ function exitOnError(error, statusCode, message) {
 	}
 }
 
+function getEnvironment() {
+	if (program.dev) return 'dev-';
+	if (program.stg) return 'stg-';
+	if (program.int) return 'int-';
+	if (program.clinic) return 'dev-clinic-';
+	return '';
+}
+
 function getUsersFromInfo(info) {
 	var users = [];
 	for (var key in info) {
@@ -89,14 +103,15 @@ function outputToOutstream(output, users) {
 	}
 }
 
-function makeLoginRequestUrl(email, password) {
+function makeLoginRequestUrl(email, password, env) {
 	return 'https://' + email + ':' + password +
-		    	'@api.tidepool.org/auth/login';
+		    	'@' + env + 'api.tidepool.org/auth/login';
 }
 
-function makeUserAccessRequest(user_id, session_token) {
+function makeUserAccessRequest(user_id, session_token, env) {
 	return req = {
-		url: 'https://api.tidepool.org/access/groups/' + user_id,
+		url: 'https://' + env +
+			'api.tidepool.org/access/groups/' + user_id,
 		headers: {
 			'x-tidepool-session-token': 
 				session_token

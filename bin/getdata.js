@@ -12,6 +12,10 @@ program
     .arguments('<authemail> <useremail>')
     .option('-o, --output <output>', 'path/to/output.json')
     .option('-t, --types <types>', 'list of strings of data types', list)
+    .option('--dev', 'Use development server. Default server is production.')
+    .option('--stg', 'Use staging server. Default server is production.')
+    .option('--int', 'Use integration server. Default server is production.')
+    .option('--clinic', 'Use clinic server. Default server is production.')
     .option('-v, --verbose', 'Verbose output.')
     .action(function(authemail, useremail) {
 	    
@@ -21,7 +25,9 @@ program
 	    })
 	    
 	    .then(function() {
-			var url = makeLoginRequestUrl(authemail, password);
+			var env = getEnvironment();
+
+			var url = makeLoginRequestUrl(authemail, password, env);
 			request.post({url: url},
 				function(error, response, body) {
 
@@ -37,7 +43,8 @@ program
 											useremail, 
 											program.types,
 											response
-												.headers['x-tidepool-session-token']);
+												.headers['x-tidepool-session-token'],
+											env);
 					
 					var outstream = makeOutstream(program.output);
 
@@ -83,12 +90,20 @@ function exitOnError(error, statusCode, message) {
 	}
 }
 
-function makeLoginRequestUrl(email, password) {
-	return 'https://' + email + ':' + password +
-		    	'@api.tidepool.org/auth/login';
+function getEnvironment() {
+	if (program.dev) return 'dev-';
+	if (program.stg) return 'stg-';
+	if (program.int) return 'int-';
+	if (program.clinic) return 'dev-clinic-';
+	return '';
 }
 
-function makeDataQueryRequest(email, types, session_token) {
+function makeLoginRequestUrl(email, password, env) {
+	return 'https://' + email + ':' + password +
+		    	'@' + env + 'api.tidepool.org/auth/login';
+}
+
+function makeDataQueryRequest(email, types, session_token, env) {
 	var reqBody = 'METAQUERY WHERE emails CONTAINS ' + email
 					+ ' QUERY TYPE IN ';
 	if (types) {
@@ -100,7 +115,7 @@ function makeDataQueryRequest(email, types, session_token) {
 	}
 
 	return req = {
-		url: 'https://api.tidepool.org/query/data',
+		url: 'https://'+ env +'api.tidepool.org/query/data',
 		headers: {
 			'x-tidepool-session-token': 
 				session_token,
