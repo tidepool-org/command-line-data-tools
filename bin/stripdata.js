@@ -45,7 +45,7 @@ program
 performDataStripping(function() {});
 
 function performDataStripping(callback) {
-	checkOptions();
+
 	if (program.verbose) {
 		printOptions();
 	}
@@ -181,14 +181,6 @@ function removeTransmitterIdForData(data) {
 	if (program.removeTransmitter) {
     	delete data.transmitterId;
     }
-}
-
-function checkOptions() {
-	if (!program.stripAll) {program.stripAll = false;}
-	if (!program.removeAll) {program.removeAll = false;}
-	if (!program.hashIDs) {program.hashIDs = false;}
-	if (!program.removeSource) {program.removeSource = false;}
-	if (!program.verbose) {program.verbose = false;}
 }
 
 function printOptions() {
