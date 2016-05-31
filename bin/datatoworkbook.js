@@ -10,8 +10,8 @@ const BG_CONVERSION = 18.01559;
 
 program
 	.version('0.0.1')
+	.arguments('<output>')
 	.option('-i, --input <input>', 'path/to/input.json')
-	.option('-o, --output <output>', 'path/to/output.xlsx')
 	.option('--mgdL', 'Convert all BG values to mg/dL.')
 	.option('-a, --all', 'Create all pages.')
 	.option('--smbg', 'Create smbg page.')
@@ -28,6 +28,9 @@ program
 	.option('--upload', 'Create upload page.')
 	.option('--deviceEvent', 'Create device event page.')
 	.option('-v, --verbose', 'Verbose output.')
+	.action(function(output) {
+    	program.output = output;
+    })
 	.parse(process.argv);
 
 convertToWorkbook(function() {});
