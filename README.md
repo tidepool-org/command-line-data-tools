@@ -3,7 +3,7 @@ Command-line Suite
 
 data2workbook
 -------------
-*Convert JSON data to a xlsx file. Coming soon: documentation.*
+*Convert JSON data to a xlsx file. Possibly coming soon: documentation.*
 ```
   Usage: data2workbook [options]
 
