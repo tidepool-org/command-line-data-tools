@@ -10,6 +10,8 @@ var chalk = require('chalk');
 program
     .version('0.0.1')
     .arguments('<authemail> <useremail>')
+    .option('-p, --password <password', 
+    	'Password for authemail. Recommended flag for piping to another tool.')
     .option('-o, --output <output>', 'path/to/output.json')
     .option('-t, --types <types>', 'list of strings of data types', list)
     .option('--dev', 'Use development server. Default server is production.')
@@ -19,9 +21,13 @@ program
     .option('-v, --verbose', 'Verbose output.')
     .action(function(authemail, useremail) {
 	    
-	    var password, session_token;
+	    var password;
+	    var session_token;
 	    co(function *() {
-	       	password = yield prompt.password('Password: ');
+	    	if (program.password)
+	    		password = program.password;
+	    	else
+	       		password = yield prompt.password('Password: ');
 	    })
 	    
 	    .then(function() {
