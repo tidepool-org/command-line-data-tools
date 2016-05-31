@@ -344,16 +344,16 @@ describe('stripdata', function() {
 			stripdata.program.hashIDs = false;
 			var data = readInputTestFile();
 			for (var i in data) {
-				var chunk = {val: data[i]};
+				var chunk = data[i];
 				var expectGroup = data[i]._groupId;
 				var expectUpload = data[i].uploadId;
 				stripdata.hashIDsForData(chunk);
-				should.exist(chunk.val._groupId);
-				should.not.exist(chunk.val.hash_groupId);
-				chunk.val._groupId.should.equal(expectGroup);
-				should.exist(chunk.val.uploadId);
-				should.not.exist(chunk.val.hash_uploadId);
-				chunk.val.uploadId.should.equal(expectUpload);				
+				should.exist(chunk._groupId);
+				should.not.exist(chunk.hash_groupId);
+				chunk._groupId.should.equal(expectGroup);
+				should.exist(chunk.uploadId);
+				should.not.exist(chunk.hash_uploadId);
+				chunk.uploadId.should.equal(expectUpload);				
 			}
 		});
 
@@ -361,16 +361,16 @@ describe('stripdata', function() {
 			stripdata.program.hashIDs = true;
 			var data = readInputTestFile();
 			for (var i in data) {
-				var chunk = {val: data[i]};
+				var chunk = data[i];
 				var expectGroup = data[i]._groupId;
 				var expectUpload = data[i].uploadId;
 				stripdata.hashIDsForData(chunk);
-				should.not.exist(chunk.val._groupId);
-				should.exist(chunk.val.hash_groupId);
-				chunk.val.hash_groupId.should.not.equal(expectGroup);
-				should.not.exist(chunk.val.uploadId);
-				should.exist(chunk.val.hash_uploadId);
-				chunk.val.hash_uploadId.should.not.equal(expectUpload);
+				should.not.exist(chunk._groupId);
+				should.exist(chunk.hash_groupId);
+				chunk.hash_groupId.should.not.equal(expectGroup);
+				should.not.exist(chunk.uploadId);
+				should.exist(chunk.hash_uploadId);
+				chunk.hash_uploadId.should.not.equal(expectUpload);
 			}
 		});
 	

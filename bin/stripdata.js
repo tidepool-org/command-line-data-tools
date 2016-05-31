@@ -71,9 +71,7 @@ function performDataStripping(callback) {
 			    	continue;
 			    }
 
-			    // Make data into object so it is
-			    // passed by reference.
-			    var cleanData = {val: chunk[i]};
+			    var cleanData = chunk[i];
 
 			    stripModelAndSNForData(cleanData);
 
@@ -83,7 +81,7 @@ function performDataStripping(callback) {
 
 			    removeTransmitterIdForData(cleanData);
 
-			    allClean.push(JSON.stringify(cleanData.val));
+			    allClean.push(JSON.stringify(cleanData));
 		    }
 		    var cleanStr = '[' + allClean.join(',') + ']\n';
 
@@ -119,11 +117,9 @@ function splitDeviceId(deviceId) {
 	return retlist;
 }
 
-// Because data is an object, this passes data
-// by reference.
 function stripModelAndSNForData(data) {
 
-	var deviceId = splitDeviceId(data.val.deviceId);
+	var deviceId = splitDeviceId(data.deviceId);
     var deviceComp = deviceId[0];
 
     if ((program.stripAll
@@ -131,21 +127,21 @@ function stripModelAndSNForData(data) {
     		.indexOf(deviceComp) >= 0)
     	&& program.leaveModels
     		.indexOf(deviceComp) < 0) {
-    	if (data.val.type !== 'upload') {
-    		deviceId[0]=data.val.type + ' device';
+    	if (data.type !== 'upload') {
+    		deviceId[0]=data.type + ' device';
 		} else {
 			// This probably isn't the best way to
 			// go about scrubbing an upload but I
 			// can't discern a better way to go
 			// about it.
-			delete data.val.deviceManufacturers;
-			if (data.val.payload)
-				delete data.val.payload.devices;
-			if (data.val.deviceModel)
-				data.val.deviceModel = data.val.deviceTags[0]
+			delete data.deviceManufacturers;
+			if (data.payload)
+				delete data.payload.devices;
+			if (data.deviceModel)
+				data.deviceModel = data.deviceTags[0]
 										+ ' model';
-			if (data.val.deviceSerialNumber)
-				data.val.deviceSerialNumber = 'Serial Number';
+			if (data.deviceSerialNumber)
+				data.deviceSerialNumber = 'Serial Number';
 		}
     }
 
@@ -157,43 +153,33 @@ function stripModelAndSNForData(data) {
     	deviceId[1]='Serial Number';
     }
 
-    data.val.deviceId = deviceId.join('-');
+    data.deviceId = deviceId.join('-');
 }
 
-function stripModelAndSNForUpload(data) {
-
-}
-
-// Because data is an object, this passes data
-// by reference.
 function hashIDsForData(data) {
 	if (program.hashIDs) {
-    	data.val.hash_groupId = 
+    	data.hash_groupId = 
     		crypto.createHash('sha256')
-    			.update(data.val._groupId.toString())
+    			.update(data._groupId.toString())
     			.digest('hex');
-    	delete data.val._groupId;
-    	data.val.hash_uploadId = 
+    	delete data._groupId;
+    	data.hash_uploadId = 
     		crypto.createHash('sha256')
-    			.update(data.val.uploadId.toString())
+    			.update(data.uploadId.toString())
     			.digest('hex');
-    	delete data.val.uploadId;
+    	delete data.uploadId;
     }
 }
 
-// Because data is an object, this passes data
-// by reference.
 function removeSourceForData(data) {
 	if (program.removeSource) {
-    	delete data.val.source;
+    	delete data.source;
     }
 }
 
-// Because data is an object, this passes data
-// by reference.
 function removeTransmitterIdForData(data) {
 	if (program.removeTransmitter) {
-    	delete data.val.transmitterId;
+    	delete data.transmitterId;
     }
 }
 
