@@ -36,6 +36,8 @@ program
     	'Pass IDs (such as _groupid and uploadId) through a one-way hash.')
     .option('--removeSource',
     	'Remove the source of the data, e.g. carelink.')
+    .option('--removeTransmitter',
+    	'Remove the transmitter id, e.g. the transmitter id for a Dexcom.')
     .option('-v, --verbose',
     	'Verbose output.')
     .parse(process.argv);
@@ -79,6 +81,8 @@ function performDataStripping(callback) {
 
 			    removeSourceForData(cleanData);
 
+			    removeTransmitterIdForData(cleanData);
+
 			    allClean.push(JSON.stringify(cleanData.val));
 		    }
 		    var cleanStr = '[' + allClean.join(',') + ']\n';
@@ -118,6 +122,7 @@ function splitDeviceId(deviceId) {
 // Because data is an object, this passes data
 // by reference.
 function stripModelAndSNForData(data) {
+
 	var deviceId = splitDeviceId(data.val.deviceId);
     var deviceComp = deviceId[0];
 
@@ -126,7 +131,22 @@ function stripModelAndSNForData(data) {
     		.indexOf(deviceComp) >= 0)
     	&& program.leaveModels
     		.indexOf(deviceComp) < 0) {
-    	deviceId[0]=data.val.type + ' device';
+    	if (data.val.type !== 'upload') {
+    		deviceId[0]=data.val.type + ' device';
+		} else {
+			// This probably isn't the best way to
+			// go about scrubbing an upload but I
+			// can't discern a better way to go
+			// about it.
+			delete data.val.deviceManufacturers;
+			if (data.val.payload)
+				delete data.val.payload.devices;
+			if (data.val.deviceModel)
+				data.val.deviceModel = data.val.deviceTags[0]
+										+ ' model';
+			if (data.val.deviceSerialNumber)
+				data.val.deviceSerialNumber = 'Serial Number';
+		}
     }
 
     if ((program.stripAll
@@ -138,6 +158,10 @@ function stripModelAndSNForData(data) {
     }
 
     data.val.deviceId = deviceId.join('-');
+}
+
+function stripModelAndSNForUpload(data) {
+
 }
 
 // Because data is an object, this passes data
@@ -162,6 +186,14 @@ function hashIDsForData(data) {
 function removeSourceForData(data) {
 	if (program.removeSource) {
     	delete data.val.source;
+    }
+}
+
+// Because data is an object, this passes data
+// by reference.
+function removeTransmitterIdForData(data) {
+	if (program.removeTransmitter) {
+    	delete data.val.transmitterId;
     }
 }
 

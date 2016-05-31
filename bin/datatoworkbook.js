@@ -727,10 +727,14 @@ function processUploadEvent(sheet, upload) {
 				index: index,
 				group: group,
 				byUser: upload.val.byUser,
-				deviceManufacturer: upload.val.deviceManufacturers[0],
+				deviceManufacturer: (upload.val.deviceManufacturers
+										&& upload.val.deviceManufacturers.length > 0) ?
+										upload.val.deviceManufacturers[0] : null,
 				deviceModel: upload.val.payload.devices[i].deviceModel,
 				deviceSerialNumber: upload.val.payload.devices[i].deviceSerialNumber,
-				deviceTag: upload.val.deviceTags[0],
+				deviceTag: (upload.val.deviceTags
+										&& upload.val.deviceTags.length > 0) ?
+										upload.val.deviceTags[0] : null,
 				computerTime: upload.val.computerTime,
 				time: upload.val.time,
 				timezoneOffset: upload.val.timezoneOffset,
@@ -758,13 +762,17 @@ function processUploadEvent(sheet, upload) {
 			index: index,
 			group: group,
 			byUser: upload.val.byUser,
-			deviceManufacturer: upload.val.deviceManufacturers[0],
+			deviceManufacturer: (upload.val.deviceManufacturers
+									&& upload.val.deviceManufacturers.length > 0) ?
+									upload.val.deviceManufacturers[0] : null,
 			deviceModel: upload.val.deviceModel,
 			// Some devices (such as HealthKit_DexG5) do not have a
 			// serial number, so it is possible for the deviceSN to
 			// be null.
 			deviceSerialNumber: upload.val.deviceSerialNumber || null,
-			deviceTag: upload.val.deviceTags[0],
+			deviceTag: (upload.val.deviceTags
+						&& upload.val.deviceTags.length > 0) ?
+						upload.val.deviceTags[0] : null,
 			computerTime: upload.val.computerTime,
 			time: upload.val.time,
 			timezoneOffset: upload.val.timezoneOffset,
