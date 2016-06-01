@@ -10,7 +10,8 @@
     "getdata": "./bin/getdata.js",
     "getusers": "./bin/getusers.js",
     "stripdata": "./bin/stripdata.js",
-    "data2workbook": "./bin/datatoworkbook.js"
+    "data2workbook": "./bin/datatoworkbook.js",
+    "filterdata": "./bin/filterdata.js"
   },
   "dependencies": {
     "JSONStream": "^1.1.1",
