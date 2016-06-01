@@ -72,22 +72,20 @@ filterdata
 ----------------
 *Filter json data to meet specified criteria.*
 ```
-usage: filterdata
-	  -length   : number of contiguous days, regardless of data (optional; default is 1 day)
-	  -min	    : minimum number of events per day (optional; default is 1 event)
-	  -days     : minimum number of days with <min> events (optional; default is 1 day)
-	  -date     : start date (optional; default is most recent date with data)
-	  -fromEnd  : true if working backwards in time
-	  	          false if working forwards in time
-			      (optional; default is true)
-	  -date     : start date (optional; default depends on <fromEnd>,
-	  	      	    	 	            most recent date with data if <fromEnd> is true,
-						                oldest date with data if <fromEnd> is false)
-	  -type     : data type ('cbg', 'bolus', etc.)
-	  -i        : /path/to/input.json (optional; default is stdin)
-	  -o        : /path/to/output.json (optional; default is stdout)
-	  --version
-	  --help
+  Usage: filterdata [options] <type>
+
+  Options:
+
+    -h, --help             output usage information
+    -V, --version          output the version number
+    -i, --input <input>    path/to/input.json
+    -o, --output <output>  path/to/output.json
+    --length <length>      Number of contiguous days, regardless of data. Default is 1 day.
+    --min <min>            Minimum number of events per day to be a qualifying day. Default is 1 event.
+    --days <days>          Minimum number of days with <min> events. Default is 1 day.
+    --gap <gap>            Maximum gap of unqualifying days in <length> contiguous days. Default is 1 day.
+    -v, --verbose          Verbose output.
+    -d, --debug            Debugging logging.
 ```
 
 stripdata
