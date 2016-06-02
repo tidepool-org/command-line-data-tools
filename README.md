@@ -53,19 +53,22 @@ getdata
 -------
 *For a user email, retrieve the json data for that user.*
 ```
-  Usage: getdata [options] <authemail> <useremail>
+  Usage: getdata [options] <authemail>
 
   Options:
 
-    -h, --help             output usage information
-    -V, --version          output the version number
-    -o, --output <output>  path/to/output.json
-    -t, --types <types>    list of strings of data types
-    --dev                  Use development server. Default server is production.
-    --stg                  Use staging server. Default server is production.
-    --int                  Use integration server. Default server is production.
-    --clinic               Use clinic server. Default server is production.
-    -v, --verbose          Verbose output.
+    -h, --help                 output usage information
+    -V, --version              output the version number
+    --email <email>            Email to get data for.
+    --id <id>                  Id to get data for.
+    -p, --password <password>  Password for authemail. Recommended flag for piping to another tool.
+    -o, --output <output>      path/to/output.json
+    -t, --types <types>        List of strings of data types. Only for email requests.
+    --dev                      Use development server. Default server is production.
+    --stg                      Use staging server. Default server is production.
+    --int                      Use integration server. Default server is production.
+    --clinic                   Use clinic server. Default server is production.
+    -v, --verbose              Verbose output.
 ```
 
 filterdata

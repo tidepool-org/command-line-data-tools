@@ -666,7 +666,7 @@ function processBloodKetoneEvent(lastIndex, bloodKetone) {
 }
 
 function processWizardEvent(lastIndex, wizard) {
-	if (program.mgdL && wizard.val.units !== 'mg/dL') {
+	if (program.mgdL && wizard.units !== 'mg/dL') {
 		wizard.units = 'mg/dL';
 		wizard.bgInput *= BG_CONVERSION;
 		if (wizard.bgTarget.target) 
