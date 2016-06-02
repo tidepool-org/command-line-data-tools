@@ -5,7 +5,7 @@ var fs = require('fs');
 var chalk = require('chalk');
 var JSONStream = require('JSONStream');
 
-const DAY_IN_MILLI = 86400000.0;
+const DAY_IN_MILLI = 86400000;
 
 program
     .version('0.0.1')
@@ -71,8 +71,9 @@ function performDataFiltering(callback) {
 		    var i = getFirstIndexOfTypeWithExit(0, program.type, chunk);
 			var curSet = {
 				start: new Date(chunk[i].time),
-				// lastData: null,
-				end: new Date(chunk[i].time)
+				end: new Date(chunk[i].time),
+				eventsToday: 1,
+				qualDays: 0
 			};
 			totalBack = 0;
 
@@ -82,16 +83,28 @@ function performDataFiltering(callback) {
 		    	curSet.end = new Date(chunk[i].time);
 
 		    	i = getFirstIndexOfType(i + 1, program.type, chunk);
-		    	if (i === chunk.length) break;
+		    	if (i === chunk.length) {
+		    		if (curSet.eventsToday >= program.min) curSet.qualDays++;
+			    	break;
+		    	}
 
 		    	var nextTime = new Date(chunk[i].time);
+
+		    	// gap & length
 		    	var gap = (curSet.end.getTime() - nextTime.getTime()) / DAY_IN_MILLI;
 		    	var length = (curSet.start.getTime() - curSet.end.getTime()) / DAY_IN_MILLI;
 
-		    	if (gap > program.gap && length > program.length) break;
-		    		// && enough coverage
-		    	else if (gap > program.gap) {
-		    		// || not enough coverage
+		    	// coverage
+		    	if (verifySameDay(curSet.end, nextTime)) curSet.eventsToday++;
+		    	else if (curSet.eventsToday >= program.min) {
+		    		curSet.qualDays++;
+		    		curSet.eventsToday = 1;
+		    	}
+		    	var minQualDays = program.days / program.length * Math.max(program.length, length);
+
+		    	if (gap > program.gap && length > program.length && curSet.qualDays > minQualDays) break;
+		    	else if (gap > program.gap 
+		    		|| (length >= program.length && curSet.qualDays < minQualDays)) {
 		    		// start over
 		    		totalBack += gap + length;
 		    		
@@ -106,16 +119,21 @@ function performDataFiltering(callback) {
 		    		toAdd = [];
 					var curSet = {
 						start: new Date(chunk[i].time),
-						end: new Date(chunk[i].time)
+						end: new Date(chunk[i].time),
+						eventsToday: 1,
+						qualDays: 0
 					};
 		    	}
 
 		    }
 
 		    var length = (curSet.start.getTime() - curSet.end.getTime()) / DAY_IN_MILLI;
-		    if (program.debug) console.log(chalk.blue('Data set length (days): ' + length));
-		    if (length < program.length) {
-		    	// || data does not have coverage
+	    	var minQualDays = program.days / program.length * Math.max(program.length, length);
+		    if (program.debug) {
+		    	console.log(chalk.blue('Data set length (days): ' + length));
+		    	console.log(chalk.blue('Qualifying day coverage: ' + curSet.qualDays / length));
+		    }
+		    if (length < program.length || curSet.qualDays < minQualDays) {
     	    	console.log(chalk.red.bold('There was no such data set that fit the criteria.'
 							+ ' Terminating program.'));
 		    	process.exit(1);
