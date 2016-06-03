@@ -42,7 +42,8 @@ program
 			request.post({url: url},
 				function(error, response, body) {
 
-					exitOnError(error, response.statusCode, 
+					exitOnError(error, 
+						response ? response.statusCode : null, 
 						'An error occured with login request. ' 
 							+ 'Bad username/password? ');
 

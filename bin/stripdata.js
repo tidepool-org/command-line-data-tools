@@ -33,7 +33,7 @@ program
     .option('--removeAll',
     	'Remove all data types, except for what is explicitly left.')
     .option('--hashIDs',
-    	'Pass IDs (such as _groupid and uploadId) through a one-way hash.')
+    	'Pass IDs (such as _groupId and uploadId) through a one-way hash.')
     .option('--removeSource',
     	'Remove the source of the data, e.g. carelink.')
     .option('--removeTransmitter',
@@ -45,7 +45,7 @@ program
 performDataStripping(function() {});
 
 function performDataStripping(callback) {
-
+	checkOptions();
 	if (program.verbose) {
 		printOptions();
 	}
@@ -158,16 +158,23 @@ function stripModelAndSNForData(data) {
 
 function hashIDsForData(data) {
 	if (program.hashIDs) {
-    	data.hash_groupId = 
-    		crypto.createHash('sha256')
-    			.update(data._groupId.toString())
-    			.digest('hex');
+    	if (data._groupId)
+	    	data.hash_groupId = 
+	    		crypto.createHash('sha256')
+	    			.update(data._groupId.toString())
+	    			.digest('hex');
     	delete data._groupId;
     	data.hash_uploadId = 
     		crypto.createHash('sha256')
     			.update(data.uploadId.toString())
     			.digest('hex');
     	delete data.uploadId;
+    	if (data.byUser)
+    		data.hash_byUser = 
+	    		crypto.createHash('sha256')
+	    			.update(data.byUser.toString())
+	    			.digest('hex');
+    	delete data.hash_byUser;
     }
 }
 
@@ -181,6 +188,14 @@ function removeTransmitterIdForData(data) {
 	if (program.removeTransmitter) {
     	delete data.transmitterId;
     }
+}
+
+function checkOptions() {
+	if (!program.stripAll) {program.stripAll = false;}
+	if (!program.removeAll) {program.removeAll = false;}
+	if (!program.hashIDs) {program.hashIDs = false;}
+	if (!program.removeSource) {program.removeSource = false;}
+	if (!program.verbose) {program.verbose = false;}
 }
 
 function printOptions() {

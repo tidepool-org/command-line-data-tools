@@ -258,6 +258,7 @@ module.exports.COL_HEADERS = {
         { header: 'Index', key: 'index', width: 10 },
         { header: 'Group', key: 'group', width: 10 },
         { header: 'Uploaded by User', key: 'byUser', width: 10 },
+        { header: 'Hash Uploaded by User', key: 'hash_byUser', width: 10 },
         { header: 'Device Manufacturer', key: 'deviceManufacturer', width: 10 },
         { header: 'Device Model', key: 'deviceModel', width: 10 },
         { header: 'Device Serial Number', key: 'deviceSerialNumber', width: 10 },

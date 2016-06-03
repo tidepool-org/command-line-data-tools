@@ -730,6 +730,7 @@ function processUploadEvent(sheet, upload) {
 				index: index,
 				group: group,
 				byUser: upload.byUser,
+				hash_byUser: upload.hash_byUser,
 				deviceManufacturer: (upload.deviceManufacturers
 										&& upload.deviceManufacturers.length > 0) ?
 										upload.deviceManufacturers[0] : null,
@@ -765,6 +766,7 @@ function processUploadEvent(sheet, upload) {
 			index: index,
 			group: group,
 			byUser: upload.byUser,
+			hash_byUser: upload.hash_byUser,
 			deviceManufacturer: (upload.deviceManufacturers
 									&& upload.deviceManufacturers.length > 0) ?
 									upload.deviceManufacturers[0] : null,
