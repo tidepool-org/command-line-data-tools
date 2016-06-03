@@ -689,6 +689,8 @@ function processInsulinSensitivity(sheet, insulinSensitivity, pumpSettings,
 		var insulinSensitivityRow = {
 			index: index,
 			group: group,
+			activeSchedule: activeSchedule,
+			scheduleName: scheduleName,
 			sequence: sequence,
 			units: units,
 			amount: insulinSensitivity[i].amount,
