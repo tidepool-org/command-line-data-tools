@@ -426,21 +426,21 @@ function processPumpSettingsEvent(wb, pumpSettings) {
 	// BG Targets
 	if (program.all || program.bgTarget) {
 		var bgTargetSheet = wb.getWorksheet('bgTarget');
-		processBgTarget(bgTargetSheet,
+		processBgTargets(bgTargetSheet,
 						pumpSettings);
 	}
 
 	// Carb Ratios
 	if (program.all || program.carbRatio) {
 		var carbRatioSheet = wb.getWorksheet('carbRatio');
-		processCarbRatio(carbRatioSheet,
+		processCarbRatios(carbRatioSheet,
 							pumpSettings);		
 	}
 
 	//Insulin Sensitivities
 	if (program.all || program.insulinSensitivity) {
 		var insulinSensitivitySheet = wb.getWorksheet('insulinSensitivity');
-		processInsulinSensitivity(insulinSensitivitySheet,
+		processInsulinSensitivities(insulinSensitivitySheet,
 									pumpSettings);
 	}
 }
@@ -495,25 +495,50 @@ function processBasalSchedules(sheet, pumpSettings) {
 	}
 }
 
-function processBgTarget(sheet, pumpSettings, units) {
+function processBgTargets(sheet, pumpSettings) {
 
 	var lastIndex = sheet.lastRow.getCell('index').value;
 	var index = (lastIndex === 'Index' ? 1 : (lastIndex+1));
 
 	var lastGroup = sheet.lastRow.getCell('group').value;
 	var group = (lastGroup === 'Group' ? 1 : (lastGroup+1));
-	
-	var sequence = 1;
 
-	var bgTarget = pumpSettings.bgTarget ||
-					pumpSettings.bgTargets;
+	if (pumpSettings.bgTarget) {
+		processBgTarget(sheet, 
+						pumpSettings.bgTarget,
+						pumpSettings,
+						index, 
+						group, 
+						null,
+						null);
+	} else if (pumpSettings.bgTargets) {
+		for (var i in pumpSettings.bgTargets) {
+			index = processBgTarget(sheet, 
+									pumpSettings.bgTargets[i],
+									pumpSettings,
+									index, 
+									group, 
+									pumpSettings.activeSchedule,
+									i);
+		}
+	}
+}
+
+function processBgTarget(sheet, bgTarget, pumpSettings, 
+			startIndex, group, activeSchedule, scheduleName) {
+	var index = startIndex;
+	var sequence = 1;
 	for (var i in bgTarget) {
 
 		var units;
 		if (program.mgdL) {
 			units = 'mg/dL';
-			bgTarget[i].high *= BG_CONVERSION;
-			bgTarget[i].low *= BG_CONVERSION;
+			if (bgTarget[i].high)
+				bgTarget[i].high *= BG_CONVERSION;
+			if (bgTarget[i].low)
+				bgTarget[i].low *= BG_CONVERSION;
+			if (bgTarget[i].target)
+				bgTarget[i].target *= BG_CONVERSION;
 		} else {
 			units = 'mmol/L';
 		}
@@ -521,10 +546,13 @@ function processBgTarget(sheet, pumpSettings, units) {
 		var bgTargetRow = {
 			index: index,
 			group: group,
+			activeSchedule: activeSchedule,
+			scheduleName: scheduleName,
 			sequence: sequence,
 			units: units,
 			high: bgTarget[i].high,
 			low: bgTarget[i].low,
+			target: bgTarget[i].target,
 			start:  bgTarget[i].start,
 			source: pumpSettings.source,
 			deviceTime: pumpSettings.deviceTime,
@@ -546,25 +574,49 @@ function processBgTarget(sheet, pumpSettings, units) {
 		index++;
 		sequence++;
 	}
+	return index;
 }
 
-function processCarbRatio(sheet, pumpSettings) {
+function processCarbRatios(sheet, pumpSettings) {
 
 	var lastIndex = sheet.lastRow.getCell('index').value;
 	var index = (lastIndex === 'Index' ? 1 : (lastIndex+1));
 
 	var lastGroup = sheet.lastRow.getCell('group').value;
 	var group = (lastGroup === 'Group' ? 1 : (lastGroup+1));
-	
-	var sequence = 1;
 
-	var carbRatio = pumpSettings.carbRatio ||
-						pumpSettings.carbRatios;
+	if (pumpSettings.carbRatio) {
+		processCarbRatio(sheet, 
+						pumpSettings.carbRatio, 
+						pumpSettings,
+						index, 
+						group, 
+						null,
+						null);
+	} else if (pumpSettings.carbRatios) {
+		for (var i in pumpSettings.carbRatios) {
+			index = processCarbRatio(sheet, 
+									pumpSettings.carbRatios[i], 
+									pumpSettings,
+									index, 
+									group, 
+									pumpSettings.activeSchedule,
+									i);
+		}
+	}
+}
+
+function processCarbRatio(sheet, carbRatio, pumpSettings,  startIndex, 
+					group, activeSchedule, scheduleName) {
+	var index = startIndex;
+	var sequence = 1;
 	for (var i in carbRatio) {
 
 		var carbRatioRow = {
 			index: index,
 			group: group,
+			activeSchedule: activeSchedule,
+			scheduleName: scheduleName,
 			sequence: sequence,
 			units: 'grams/unit',
 			amount: carbRatio[i].amount,
@@ -589,21 +641,42 @@ function processCarbRatio(sheet, pumpSettings) {
 		index++;
 		sequence++;
 	}
+	return index;
 }
 
-function processInsulinSensitivity(sheet, pumpSettings) {
+function processInsulinSensitivities(sheet, pumpSettings) {
 
 	var lastIndex = sheet.lastRow.getCell('index').value;
 	var index = (lastIndex === 'Index' ? 1 : (lastIndex+1));
 
 	var lastGroup = sheet.lastRow.getCell('group').value;
 	var group = (lastGroup === 'Group' ? 1 : (lastGroup+1));
-	
-	var sequence = 1;
 
-	var insulinSensitivity = pumpSettings.insulinSensitivity ||
-								pumpSettings.insulinSensitivities;
+	if (pumpSettings.insulinSensitivity) {
+		processCarbRatio(sheet, 
+						pumpSettings.insulinSensitivity, 
+						pumpSettings,
+						index, 
+						group, 
+						null,
+						null);
+	} else if (pumpSettings.insulinSensitivities) {
+		for (var i in pumpSettings.insulinSensitivities) {
+			index = processCarbRatio(sheet, 
+									pumpSettings.insulinSensitivities[i], 
+									pumpSettings,
+									index, 
+									group, 
+									pumpSettings.activeSchedule,
+									i);
+		}
+	}
+}
 
+function processInsulinSensitivity(sheet, insulinSensitivity, pumpSettings,
+					startIndex, group, activeSchedule, scheduleName) {
+	var index = startIndex;
+	var sequence = 1;	
 	for (var i in insulinSensitivity) {
 		var units;
 		if (program.mgdL) {
@@ -640,6 +713,7 @@ function processInsulinSensitivity(sheet, pumpSettings) {
 		index++;
 		sequence++;
 	}
+	return index;
 }
 
 function processBloodKetoneEvent(lastIndex, bloodKetone) {
@@ -668,7 +742,8 @@ function processBloodKetoneEvent(lastIndex, bloodKetone) {
 function processWizardEvent(lastIndex, wizard) {
 	if (program.mgdL && wizard.units !== 'mg/dL') {
 		wizard.units = 'mg/dL';
-		wizard.bgInput *= BG_CONVERSION;
+		if (wizard.bgInput)
+			wizard.bgInput *= BG_CONVERSION;
 		if (wizard.bgTarget.target) 
 			wizard.bgTarget.target *= BG_CONVERSION;
 		if (wizard.bgTarget.low) 

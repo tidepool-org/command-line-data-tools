@@ -151,10 +151,13 @@ module.exports.COL_HEADERS = {
     BG_TARGET_COLS: [
         { header: 'Index', key: 'index', width: 10 },
         { header: 'Group', key: 'group', width: 10 },
+        { header: 'Active Schedule', key: 'activeSchedule', width: 10 },
+        { header: 'Schedule Name', key: 'scheduleName', width: 10 },
         { header: 'Sequence', key: 'sequence', width: 10 },
         { header: 'Units', key: 'units', width: 10 },
         { header: 'Low', key: 'low', width: 10 },
         { header: 'High', key: 'high', width: 10 },
+        { header: 'target', key: 'target', width: 10 },        
         { header: 'Start', key: 'start', width: 10 },
         { header: 'Source', key: 'source', width: 10 },
         { header: 'Device Id', key: 'deviceId', width: 10 },
