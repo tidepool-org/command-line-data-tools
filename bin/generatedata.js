@@ -146,7 +146,6 @@ function generateSimpleData(output, type, units, conversion, dates, groupId, opt
 
 	readExistingData(output, function(data) {
 		var writeData = newData.concat(data);
-		console.log(writeData.length);
 		fs.writeFile(output, JSON.stringify(writeData), function(err) {
 			if (err) {
 				console.error(chalk.red.bold('An error occurred with writing the file.'));
