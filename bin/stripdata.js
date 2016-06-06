@@ -13,34 +13,34 @@ exports.splitDeviceId = splitDeviceId;
 exports.hashIDsForData = hashIDsForData;
 
 program
-    .version('0.0.1')
-    .option('-i, --input <input>', 'path/to/input.json')
-    .option('-o, --output <output>', 'path/to/output.json')
-    .option('--stripModels <stripModels>', 
-    	'Strip model name for these models. e.g. Anonymous Pump', list, [])
-    .option('--stripSNs <stripSNs>', 
-    	'Strip serial number for these models.', list, [])
-    .option('--leaveModels <leaveModels>', 
-    	'Leave model for these models. Takes precedence over strip.', list, [])
-    .option('--leaveSNs <leaveSNs>', 
-    	'Leave serial number for these models. Takes precedence over strip.', list, [])
-    .option('--stripAll', 
-    	'Strip all of the data, except for what is explicitly left.')
-    .option('--removeTypes <removeTypes>',
-    	'Remove these data types.', list, [])
-    .option('--leaveTypes <leaveTypes>',
-    	'Leave these data types. Takes precedence over removal.', list, [])
-    .option('--removeAll',
-    	'Remove all data types, except for what is explicitly left.')
-    .option('--hashIDs',
-    	'Pass IDs (such as _groupId and uploadId) through a one-way hash.')
-    .option('--removeSource',
-    	'Remove the source of the data, e.g. carelink.')
-    .option('--removeTransmitter',
-    	'Remove the transmitter id, e.g. the transmitter id for a Dexcom.')
-    .option('-v, --verbose',
-    	'Verbose output.')
-    .parse(process.argv);
+	.version('0.0.1')
+	.option('-i, --input <input>', 'path/to/input.json')
+	.option('-o, --output <output>', 'path/to/output.json')
+	.option('--stripModels <stripModels>', 
+		'Strip model name for these models. e.g. Anonymous Pump', list, [])
+	.option('--stripSNs <stripSNs>', 
+		'Strip serial number for these models.', list, [])
+	.option('--leaveModels <leaveModels>', 
+		'Leave model for these models. Takes precedence over strip.', list, [])
+	.option('--leaveSNs <leaveSNs>', 
+		'Leave serial number for these models. Takes precedence over strip.', list, [])
+	.option('--stripAll', 
+		'Strip all of the data, except for what is explicitly left.')
+	.option('--removeTypes <removeTypes>',
+		'Remove these data types.', list, [])
+	.option('--leaveTypes <leaveTypes>',
+		'Leave these data types. Takes precedence over removal.', list, [])
+	.option('--removeAll',
+		'Remove all data types, except for what is explicitly left.')
+	.option('--hashIDs',
+		'Pass IDs (such as _groupId and uploadId) through a one-way hash.')
+	.option('--removeSource',
+		'Remove the source of the data, e.g. carelink.')
+	.option('--removeTransmitter',
+		'Remove the transmitter id, e.g. the transmitter id for a Dexcom.')
+	.option('-v, --verbose',
+		'Verbose output.')
+	.parse(process.argv);
 
 performDataStripping(function() {});
 
@@ -60,32 +60,32 @@ function performDataStripping(callback) {
 	ifs
 		.pipe(jsonStream)
 		.on('data', function (chunk) {
-		    var allClean = [];
-		    for (var i in chunk) {
-			    if ((program.removeAll
-			    	|| program.removeTypes
-			    		.indexOf(chunk[i].type) >= 0)
-			    	&& program.leaveTypes
-			    		.indexOf(chunk[i].type) < 0) {
-			    	// Do NOT add this event to output
-			    	continue;
-			    }
+			var allClean = [];
+			for (var i in chunk) {
+				if ((program.removeAll
+					|| program.removeTypes
+						.indexOf(chunk[i].type) >= 0)
+					&& program.leaveTypes
+						.indexOf(chunk[i].type) < 0) {
+					// Do NOT add this event to output
+					continue;
+				}
 
-			    var cleanData = chunk[i];
+				var cleanData = chunk[i];
 
-			    stripModelAndSNForData(cleanData);
+				stripModelAndSNForData(cleanData);
 
-			    hashIDsForData(cleanData);
+				hashIDsForData(cleanData);
 
-			    removeSourceForData(cleanData);
+				removeSourceForData(cleanData);
 
-			    removeTransmitterIdForData(cleanData);
+				removeTransmitterIdForData(cleanData);
 
-			    allClean.push(JSON.stringify(cleanData));
-		    }
-		    var cleanStr = '[' + allClean.join(',') + ']\n';
+				allClean.push(JSON.stringify(cleanData));
+			}
+			var cleanStr = '[' + allClean.join(',') + ']\n';
 
-		    writeToOutstream(ofs, cleanStr);
+			writeToOutstream(ofs, cleanStr);
 		})
 		.on('end', function() {
 			if (program.verbose) {
@@ -120,15 +120,15 @@ function splitDeviceId(deviceId) {
 function stripModelAndSNForData(data) {
 
 	var deviceId = splitDeviceId(data.deviceId);
-    var deviceComp = deviceId[0];
+	var deviceComp = deviceId[0];
 
-    if ((program.stripAll
-    	|| program.stripModels
-    		.indexOf(deviceComp) >= 0)
-    	&& program.leaveModels
-    		.indexOf(deviceComp) < 0) {
-    	if (data.type !== 'upload') {
-    		deviceId[0]=data.type + ' device';
+	if ((program.stripAll
+		|| program.stripModels
+			.indexOf(deviceComp) >= 0)
+		&& program.leaveModels
+			.indexOf(deviceComp) < 0) {
+		if (data.type !== 'upload') {
+			deviceId[0]=data.type + ' device';
 		} else {
 			// This probably isn't the best way to
 			// go about scrubbing an upload but I
@@ -143,51 +143,51 @@ function stripModelAndSNForData(data) {
 			if (data.deviceSerialNumber)
 				data.deviceSerialNumber = 'Serial Number';
 		}
-    }
+	}
 
-    if ((program.stripAll
-    	|| program.stripSNs
-    		.indexOf(deviceComp) >= 0)
-    	&& program.leaveSNs
-    		.indexOf(deviceComp) < 0) {
-    	deviceId[1]='Serial Number';
-    }
+	if ((program.stripAll
+		|| program.stripSNs
+			.indexOf(deviceComp) >= 0)
+		&& program.leaveSNs
+			.indexOf(deviceComp) < 0) {
+		deviceId[1]='Serial Number';
+	}
 
-    data.deviceId = deviceId.join('-');
+	data.deviceId = deviceId.join('-');
 }
 
 function hashIDsForData(data) {
 	if (program.hashIDs) {
-    	if (data._groupId)
-	    	data.hash_groupId = 
-	    		crypto.createHash('sha256')
-	    			.update(data._groupId.toString())
-	    			.digest('hex');
-    	delete data._groupId;
-    	data.hash_uploadId = 
-    		crypto.createHash('sha256')
-    			.update(data.uploadId.toString())
-    			.digest('hex');
-    	delete data.uploadId;
-    	if (data.byUser)
-    		data.hash_byUser = 
-	    		crypto.createHash('sha256')
-	    			.update(data.byUser.toString())
-	    			.digest('hex');
-    	delete data.hash_byUser;
-    }
+		if (data._groupId)
+			data.hash_groupId = 
+				crypto.createHash('sha256')
+					.update(data._groupId.toString())
+					.digest('hex');
+		delete data._groupId;
+		data.hash_uploadId = 
+			crypto.createHash('sha256')
+				.update(data.uploadId.toString())
+				.digest('hex');
+		delete data.uploadId;
+		if (data.byUser)
+			data.hash_byUser = 
+				crypto.createHash('sha256')
+					.update(data.byUser.toString())
+					.digest('hex');
+		delete data.hash_byUser;
+	}
 }
 
 function removeSourceForData(data) {
 	if (program.removeSource) {
-    	delete data.source;
-    }
+		delete data.source;
+	}
 }
 
 function removeTransmitterIdForData(data) {
 	if (program.removeTransmitter) {
-    	delete data.transmitterId;
-    }
+		delete data.transmitterId;
+	}
 }
 
 function checkOptions() {

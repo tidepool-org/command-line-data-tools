@@ -8,32 +8,32 @@ var JSONStream = require('JSONStream');
 const DAY_IN_MILLI = 86400000;
 
 program
-    .version('0.0.1')
-    .arguments('<type>')
-    .option('-i, --input <input>', 'path/to/input.json')
-    .option('-o, --output <output>', 'path/to/output.json')
-    .option('--length <length>', 
-    	'Number of contiguous days, regardless of data. Default is 1 day.',
-    	Number, 1)
-    .option('--min <min>', 
-    	'Minimum number of events per day to be a qualifying day.' 
-    	+ ' Default is 1 event.',
-    	Number, 1)
-    .option('--days <days>', 
-    	'Minimum number of days with <min> events. Default is 1 day.',
-    	Number, 1)
-    .option('--gap <gap>',
-    	'Maximum gap of unqualifying days in <length> contiguous days.'
-    	+ ' Default is 1 day.',
-    	Number, 1)
-    .option('-v, --verbose', 'Verbose output.')
-    .option('-d, --debug', 'Debugging logging.')
-    .option('--report <report>', 
-    	'Add a line to a report file summarizing results.')
+	.version('0.0.1')
+	.arguments('<type>')
+	.option('-i, --input <input>', 'path/to/input.json')
+	.option('-o, --output <output>', 'path/to/output.json')
+	.option('--length <length>', 
+		'Number of contiguous days, regardless of data. Default is 1 day.',
+		Number, 1)
+	.option('--min <min>', 
+		'Minimum number of events per day to be a qualifying day.' 
+		+ ' Default is 1 event.',
+		Number, 1)
+	.option('--days <days>', 
+		'Minimum number of days with <min> events. Default is 1 day.',
+		Number, 1)
+	.option('--gap <gap>',
+		'Maximum gap of unqualifying days in <length> contiguous days.'
+		+ ' Default is 1 day.',
+		Number, 1)
+	.option('-v, --verbose', 'Verbose output.')
+	.option('-d, --debug', 'Debugging logging.')
+	.option('--report <report>', 
+		'Add a line to a report file summarizing results.')
 	.action(function(type) {
 		program.type = type;
-    })
-    .parse(process.argv);
+	})
+	.parse(process.argv);
 
 performDataFiltering(function() { });
 
@@ -68,12 +68,12 @@ function performDataFiltering(callback) {
 
 			var toAdd = getDataToAdd(0, chunk);
 
-		    var jsonStr = '[' + toAdd.join(',') + ']\n';
+			var jsonStr = '[' + toAdd.join(',') + ']\n';
 
 			if (program.verbose) {
 				console.log(chalk.yellow.bold('Writing to output...'));
 			}
-		    writeToOutstream(ofs, jsonStr);
+			writeToOutstream(ofs, jsonStr);
 		})
 		.on('end', function() {
 			if (program.verbose) {
@@ -85,8 +85,8 @@ function performDataFiltering(callback) {
 
 function getDataToAdd(startIndex, data) {
 
-    var toAdd = [];
-    var i = getFirstIndexOfTypeWithExit(startIndex, program.type, data);
+	var toAdd = [];
+	var i = getFirstIndexOfTypeWithExit(startIndex, program.type, data);
 	var curSet = {
 		start: new Date(data[i].time),
 		end: new Date(data[i].time),
@@ -95,73 +95,73 @@ function getDataToAdd(startIndex, data) {
 	};
 	totalBack = 0;
 
-    while(i < data.length) {
+	while(i < data.length) {
 
-    	toAdd.push(JSON.stringify(data[i]));
-    	curSet.end = new Date(data[i].time);
+		toAdd.push(JSON.stringify(data[i]));
+		curSet.end = new Date(data[i].time);
 
-    	i = getFirstIndexOfType(i + 1, program.type, data);
-    	if (i === data.length) {
-    		if (curSet.eventsToday >= program.min) curSet.qualDays++;
-	    	break;
-    	}
+		i = getFirstIndexOfType(i + 1, program.type, data);
+		if (i === data.length) {
+			if (curSet.eventsToday >= program.min) curSet.qualDays++;
+			break;
+		}
 
-    	var nextTime = new Date(data[i].time);
+		var nextTime = new Date(data[i].time);
 
-    	// gap & length
-    	var gap = (curSet.end.getTime() - nextTime.getTime()) / DAY_IN_MILLI;
-    	var length = (curSet.start.getTime() - curSet.end.getTime()) / DAY_IN_MILLI;
+		// gap & length
+		var gap = (curSet.end.getTime() - nextTime.getTime()) / DAY_IN_MILLI;
+		var length = (curSet.start.getTime() - curSet.end.getTime()) / DAY_IN_MILLI;
 
-    	// coverage
-    	if (verifySameDay(curSet.end, nextTime)) curSet.eventsToday++;
-    	else if (curSet.eventsToday >= program.min) {
-    		curSet.qualDays++;
-    		curSet.eventsToday = 1;
-    	}
-    	var minQualDays = program.days / program.length * Math.max(program.length, length);
+		// coverage
+		if (verifySameDay(curSet.end, nextTime)) curSet.eventsToday++;
+		else if (curSet.eventsToday >= program.min) {
+			curSet.qualDays++;
+			curSet.eventsToday = 1;
+		}
+		var minQualDays = program.days / program.length * Math.max(program.length, length);
 
-    	if (gap > program.gap && length > program.length && curSet.qualDays > minQualDays) break;
-    	else if (gap > program.gap 
-    		|| (length >= program.length && curSet.qualDays < minQualDays)) {
-    		// start over
-    		totalBack += gap + length;
-    		
-    		if (program.debug) {
-	    		console.log(chalk.blue('Starting over because of gap.'));
-	    		console.log(chalk.cyan('Current data set length (days): ' + length));
-	    		console.log(chalk.cyan('Gap size (days): ' + gap))
-	    		console.log(chalk.cyan('Total back in time (days): ' + totalBack));
-	    		console.log(chalk.cyan('Current index: ' + i));
-	    	}
+		if (gap > program.gap && length > program.length && curSet.qualDays > minQualDays) break;
+		else if (gap > program.gap 
+			|| (length >= program.length && curSet.qualDays < minQualDays)) {
+			// start over
+			totalBack += gap + length;
+			
+			if (program.debug) {
+				console.log(chalk.blue('Starting over because of gap.'));
+				console.log(chalk.cyan('Current data set length (days): ' + length));
+				console.log(chalk.cyan('Gap size (days): ' + gap))
+				console.log(chalk.cyan('Total back in time (days): ' + totalBack));
+				console.log(chalk.cyan('Current index: ' + i));
+			}
 
-    		toAdd = [];
+			toAdd = [];
 			var curSet = {
 				start: new Date(data[i].time),
 				end: new Date(data[i].time),
 				eventsToday: 1,
 				qualDays: 0
 			};
-    	}
+		}
 
-    }
+	}
 
-    var length = getLength(curSet);
+	var length = getLength(curSet);
 	var minQualDays = program.days / program.length * Math.max(program.length, length);
-    if (length < program.length || curSet.qualDays < minQualDays) {
-    	console.log(chalk.red.bold('There was no such data set that fit the criteria.'
+	if (length < program.length || curSet.qualDays < minQualDays) {
+		console.log(chalk.red.bold('There was no such data set that fit the criteria.'
 					+ ' Terminating program.'));
-    	process.exit(1);
-    }
+		process.exit(1);
+	}
 	if (program.verbose) {
-    	console.log(chalk.blue('Start date: ' + curSet.start.toISOString()));
-    	console.log(chalk.blue('End date: ' + curSet.end.toISOString()));
-    	console.log(chalk.blue('Data set length (days): ' + length));
-    	console.log(chalk.blue('Qualifying day coverage: ' + curSet.qualDays / length));
-    }
+		console.log(chalk.blue('Start date: ' + curSet.start.toISOString()));
+		console.log(chalk.blue('End date: ' + curSet.end.toISOString()));
+		console.log(chalk.blue('Data set length (days): ' + length));
+		console.log(chalk.blue('Qualifying day coverage: ' + curSet.qualDays / length));
+	}
 
-    writeReport(curSet);
+	writeReport(curSet);
 
-    getOtherTypesInDateRange(toAdd, data, curSet.start, curSet.end);
+	getOtherTypesInDateRange(toAdd, data, curSet.start, curSet.end);
 
 	return toAdd;
 
@@ -191,18 +191,18 @@ function getLength(set) {
 
 function getFirstIndexOfType(start, type, data) {
 	var i = start;
-    while (i < data.length && data[i].type !== type)  i++;
-    return i;
+	while (i < data.length && data[i].type !== type)  i++;
+	return i;
 }
 
 function getFirstIndexOfTypeWithExit(start, type, data) {
-    var i = getFirstIndexOfType(start, type, data);
-    if (i === data.length) {
-    	console.log(chalk.red.bold('The selected data type does not exist in the data.'
-    								+ ' Terminating program.'));
-    	process.exit(1);
-    }
-    return i;
+	var i = getFirstIndexOfType(start, type, data);
+	if (i === data.length) {
+		console.log(chalk.red.bold('The selected data type does not exist in the data.'
+									+ ' Terminating program.'));
+		process.exit(1);
+	}
+	return i;
 }
 
 function printOptions() {

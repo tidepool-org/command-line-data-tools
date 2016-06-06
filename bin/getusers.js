@@ -8,28 +8,28 @@ var fs = require('fs');
 var chalk = require('chalk');
 
 program
-    .version('0.0.1')
-    .arguments('<email>')
-    .option('-p, --password <password>', 
-    	'Password for authemail. Recommended flag for piping to another tool.')
-    .option('-o, --output <output>', 'path/to/output.json')
-    .option('--dev', 'Use development server. Default server is production.')
-    .option('--stg', 'Use staging server. Default server is production.')
-    .option('--int', 'Use integration server. Default server is production.')
-    .option('--clinic', 'Use clinic server. Default server is production.')
-    .option('-v, --verbose', 'Verbose output.')
-    .action(function(email) {
-	    
-	    var password, session_token;
-	    co(function *() {
-	    	if (program.password)
-	    		password = program.password;
-	    	else
-	       		password = yield prompt.password('Password: ');
-	    })
-	    
-	    .then(function() {
-	    	var env = getEnvironment();
+	.version('0.0.1')
+	.arguments('<email>')
+	.option('-p, --password <password>', 
+		'Password for authemail. Recommended flag for piping to another tool.')
+	.option('-o, --output <output>', 'path/to/output.json')
+	.option('--dev', 'Use development server. Default server is production.')
+	.option('--stg', 'Use staging server. Default server is production.')
+	.option('--int', 'Use integration server. Default server is production.')
+	.option('--clinic', 'Use clinic server. Default server is production.')
+	.option('-v, --verbose', 'Verbose output.')
+	.action(function(email) {
+		
+		var password, session_token;
+		co(function *() {
+			if (program.password)
+				password = program.password;
+			else
+				password = yield prompt.password('Password: ');
+		})
+		
+		.then(function() {
+			var env = getEnvironment();
 			var url = makeLoginRequestUrl(email, password, env);
 			request.post({url: url},
 				function(error, response, body) {
@@ -62,10 +62,10 @@ program
 						
 					});
 			});
-	    });
+		});
 		
-    })
-    .parse(process.argv);
+	})
+	.parse(process.argv);
 
 
 function exitOnError(error, statusCode, message) {
@@ -110,7 +110,7 @@ function outputToOutstream(output, users) {
 
 function makeLoginRequestUrl(email, password, env) {
 	return 'https://' + email + ':' + password +
-		    	'@' + env + 'api.tidepool.org/auth/login';
+				'@' + env + 'api.tidepool.org/auth/login';
 }
 
 function makeUserAccessRequest(user_id, session_token, env) {

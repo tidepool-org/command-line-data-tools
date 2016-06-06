@@ -8,34 +8,34 @@ var fs = require('fs');
 var chalk = require('chalk');
 
 program
-    .version('0.0.1')
-    .arguments('<authemail>')
-    .option('--email <email>',
-    	'Email to get data for.')
-    .option('--id <id>',
-    	'Id to get data for.')
-    .option('-p, --password <password>', 
-    	'Password for authemail. Recommended flag for piping to another tool.')
-    .option('-o, --output <output>', 'path/to/output.json')
-    .option('-t, --types <types>', 
-    	'List of strings of data types. Only for email requests.', list)
-    .option('--dev', 'Use development server. Default server is production.')
-    .option('--stg', 'Use staging server. Default server is production.')
-    .option('--int', 'Use integration server. Default server is production.')
-    .option('--clinic', 'Use clinic server. Default server is production.')
-    .option('-v, --verbose', 'Verbose output.')
-    .action(function(authemail) {
-	    
-	    var password;
-	    var session_token;
-	    co(function *() {
-	    	if (program.password)
-	    		password = program.password;
-	    	else
-	       		password = yield prompt.password('Password: ');
-	    })
-	    
-	    .then(function() {
+	.version('0.0.1')
+	.arguments('<authemail>')
+	.option('--email <email>',
+		'Email to get data for.')
+	.option('--id <id>',
+		'Id to get data for.')
+	.option('-p, --password <password>', 
+		'Password for authemail. Recommended flag for piping to another tool.')
+	.option('-o, --output <output>', 'path/to/output.json')
+	.option('-t, --types <types>', 
+		'List of strings of data types. Only for email requests.', list)
+	.option('--dev', 'Use development server. Default server is production.')
+	.option('--stg', 'Use staging server. Default server is production.')
+	.option('--int', 'Use integration server. Default server is production.')
+	.option('--clinic', 'Use clinic server. Default server is production.')
+	.option('-v, --verbose', 'Verbose output.')
+	.action(function(authemail) {
+		
+		var password;
+		var session_token;
+		co(function *() {
+			if (program.password)
+				password = program.password;
+			else
+				password = yield prompt.password('Password: ');
+		})
+		
+		.then(function() {
 			var env = getEnvironment();
 
 			var url = makeLoginRequestUrl(authemail, password, env);
@@ -73,10 +73,10 @@ program
 					}).pipe(outstream);
 
 			});
-	    });
+		});
 		
-    })
-    .parse(process.argv);
+	})
+	.parse(process.argv);
 
 
 function list(val) {
@@ -114,7 +114,7 @@ function getEnvironment() {
 
 function makeLoginRequestUrl(email, password, env) {
 	return 'https://' + email + ':' + password +
-		    	'@' + env + 'api.tidepool.org/auth/login';
+				'@' + env + 'api.tidepool.org/auth/login';
 }
 
 function makeDataQueryRequest(types, session_token, env) {

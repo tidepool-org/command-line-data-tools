@@ -3,6 +3,9 @@ var fs = require('fs');
 
 var stripdata = require('../bin/stripdata.js');
 
+const IN_FILENAME = 'test/testdata-stripdata.json';
+const OUT_FILENAME = 'test/testdataout-stripdata.json';
+
 describe('stripdata', function() {
 	
 	beforeEach(function() {
@@ -378,8 +381,8 @@ describe('stripdata', function() {
 });
 
 function resetOptions() {
-	stripdata.program.input = 'test/testdata.json';
-	stripdata.program.output = 'test/testdataout.json';
+	stripdata.program.input = IN_FILENAME;
+	stripdata.program.output = OUT_FILENAME;
 	stripdata.program.stripModels = [];
 	stripdata.program.stripSNs = [];
 	stripdata.program.leaveModels = [];
@@ -393,16 +396,16 @@ function resetOptions() {
 }
 
 function readInputTestFile() {
-	var input = fs.readFileSync('test/testdata.json', {encoding: 'utf8'});
+	var input = fs.readFileSync(IN_FILENAME, {encoding: 'utf8'});
 	return JSON.parse(input);
 }
 
 function readOutputTestFile() {
-	var output = fs.readFileSync('test/testdataout.json', {encoding: 'utf8'});
+	var output = fs.readFileSync(OUT_FILENAME, {encoding: 'utf8'});
 	return JSON.parse(output);
 }
 
 function deleteFilesCreated() {
 	const execSync = require('child_process').execSync;
-	execSync('rm test/testdataout.json');
+	execSync('rm ' + OUT_FILENAME);
 }

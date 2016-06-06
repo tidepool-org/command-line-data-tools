@@ -29,8 +29,8 @@ program
 	.option('--deviceEvent', 'Create device event page.')
 	.option('-v, --verbose', 'Verbose output.')
 	.action(function(output) {
-    	program.output = output;
-    })
+		program.output = output;
+	})
 	.parse(process.argv);
 
 convertToWorkbook(function() {});
@@ -130,12 +130,12 @@ function convertToWorkbook(callback) {
 		})
 		.on('end', function() {
 			wb.xlsx.writeFile(program.output)
-		    	.then(function() {
-		    	    if (program.verbose) {
+				.then(function() {
+					if (program.verbose) {
 						console.log(chalk.green.bold('Done converting to spreadsheet.'));
 					}
 					callback();
-		    	});
+				});
 		});
 }
 
@@ -932,22 +932,22 @@ function processDeviceEvent(sheet, deviceEvent) {
 			units: deviceEvent.units,
 			value: deviceEvent.value,
 			volume: deviceEvent.volume,
-   			timeChangeFrom: 
-   				deviceEvent.change ? 
-   					deviceEvent.change.from : null,
-   			timeChangeTo:  
-   				deviceEvent.change ? 
-   					deviceEvent.change.to : null,
-   			timeChangeAgent:  
-   				deviceEvent.change ? 
-   					deviceEvent.change.agent : null,
-   			timeChangeReasons:  
-   				(deviceEvent.change
-   				&& deviceEvent.change.reasons) ? 
-   					deviceEvent.change.reasons.toString() : null,
-   			timeChangeTimezone:  
-   				deviceEvent.change ? 
-   					deviceEvent.change.timezone : null,
+			timeChangeFrom: 
+				deviceEvent.change ? 
+					deviceEvent.change.from : null,
+			timeChangeTo:  
+				deviceEvent.change ? 
+					deviceEvent.change.to : null,
+			timeChangeAgent:  
+				deviceEvent.change ? 
+					deviceEvent.change.agent : null,
+			timeChangeReasons:  
+				(deviceEvent.change
+				&& deviceEvent.change.reasons) ? 
+					deviceEvent.change.reasons.toString() : null,
+			timeChangeTimezone:  
+				deviceEvent.change ? 
+					deviceEvent.change.timezone : null,
 			primeTarget: deviceEvent.primeTarget,
 			source: deviceEvent.source,
 			deviceTime: deviceEvent.deviceTime,
