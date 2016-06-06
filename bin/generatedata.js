@@ -41,11 +41,54 @@ program
 		generateCbgData(output, dates, groupId, options, function() {});
 	});
 
+program
+	.command('smbg')
+	.arguments('<output> <dates> <groupId>')
+	.option('--numPerDay <numPerDay>', 
+		'Number of events per day. Use comma separated values' 
+		+ ' for each date range, or one value for all dates.'
+		+ ' Default is 1 smbg value.', numberList, [1])
+	.option('--values <values>',
+		'Range for possible smbg values in mg/dL.'
+		+ 'Use comma separated values' 
+		+ ' for each date range, or one value for all dates.'
+		+ ' Default is 100 mg/dL smbg values.', numberList, [100])
+	.description('Generate smbg data.')
+	.action(function(output, dates, groupId, options) {
+		var dates = datesList(dates);
+		if (dates.length/2 !== options.numPerDay.length
+			&& options.numPerDay.length !== 1) {
+			console.log(chalk.red.bold('Must have --numPerDay specified for each date pair '
+				+ 'OR only specify one --numPerDay.'));
+			process.exit(1);
+		}
+		if (dates.length !== options.values.length
+			&& options.values.length !== 1) {
+			console.log(chalk.red.bold('Must have --values specified for each date pair '
+				+ 'OR only specify one --values.'));
+			process.exit(1);
+		}
+		generateSmbgData(output, dates, groupId, options, function() {});
+	});
+
 program.parse(process.argv);
 
 function generateCbgData(output, dates, groupId, options, callback) {
 	generateSimpleData(output,
 						'cbg',
+						'mmol/L',
+						function(val) {
+							return val/BG_CONVERSION;
+						},
+						dates,
+						groupId,
+						options,
+						callback);
+}
+
+function generateSmbgData(output, dates, groupId, options, callback) {
+	generateSimpleData(output,
+						'smbg',
 						'mmol/L',
 						function(val) {
 							return val/BG_CONVERSION;
@@ -103,6 +146,7 @@ function generateSimpleData(output, type, units, conversion, dates, groupId, opt
 
 	readExistingData(output, function(data) {
 		var writeData = newData.concat(data);
+		console.log(writeData.length);
 		fs.writeFile(output, JSON.stringify(writeData), function(err) {
 			if (err) {
 				console.error(chalk.red.bold('An error occurred with writing the file.'));
