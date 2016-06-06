@@ -31,6 +31,32 @@ data2workbook
     -v, --verbose          Verbose output.
 ```
 
+generatedata
+------------
+*Generate JSON for various data-types.*
+```
+  Usage: cbg [options] <output> <dates> <groupId>
+
+  Generate cbg data.
+
+  Options:
+
+    -h, --help               output usage information
+    --numPerDay <numPerDay>  Number of events per day. Use comma separated values for each date range, or one value for all dates. Default is 288 cbg values.
+    --values <values>        Range for possible cbg values in mg/dL.Use comma separated values for each date range, or one value for all dates. Default is 100 mg/dL cbg values.
+
+
+  Usage: smbg [options] <output> <dates> <groupId>
+
+  Generate smbg data.
+
+  Options:
+
+    -h, --help               output usage information
+    --numPerDay <numPerDay>  Number of events per day. Use comma separated values for each date range, or one value for all dates. Default is 1 smbg value.
+    --values <values>        Range for possible smbg values in mg/dL.Use comma separated values for each date range, or one value for all dates. Default is 100 mg/dL smbg values.
+```
+
 getusers
 --------
 *For a user email, retrieve the user emails that have shared data with this email.*
