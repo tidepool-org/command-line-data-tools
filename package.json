@@ -11,7 +11,8 @@
     "getusers": "./bin/getusers.js",
     "stripdata": "./bin/stripdata.js",
     "data2workbook": "./bin/datatoworkbook.js",
-    "filterdata": "./bin/filterdata.js"
+    "filterdata": "./bin/filterdata.js",
+    "generatedata": "./bin/generatedata.js"
   },
   "dependencies": {
     "JSONStream": "^1.1.1",
