@@ -35,7 +35,9 @@ After cloning this repository, change directory to the repo and run
 ```
 
 Example:
+
 `data2workbook mydata.xlsx --mgdL -a -i mydata.json -v`
+
 >This produces an excel workbook with all data types. The data is inputted from the file *mydata.json*. All values are converted to mg/dL. The process will produce verbose output.
 
 ### generatedata
@@ -53,12 +55,16 @@ Example:
 ```
 
 Example:
+
 `generatedata cbg sample.json 2016-05-01,2016-05-10,2016-05-31,2016-06-02,2016-06-03,2016-06-06 mygroupId --numPerDay 144 --values 100,200,300,400,500,600`
-This generates cbg data and appends it to sample.json. All data has the _groupId *mygroupId*.
-The data complies to the following date ranges:
-- 5/1/2016 until 5/10/2016, 144 values per day in the range of 100-200 mg/dL
-- 5/31/2016 until 6/2/2016, 144 values per day in the range of 300-400 mg/dL
-- 6/3/2016 until 6/6/2016, 144 values per day in the range of 500-600 mg/dL
+
+> This generates cbg data and appends it to sample.json. All data has the _groupId *mygroupId*.
+
+> The data complies to the following date ranges:
+
+> - 5/1/2016 until 5/10/2016, 144 values per day in the range of 100-200 mg/dL
+> - 5/31/2016 until 6/2/2016, 144 values per day in the range of 300-400 mg/dL
+> - 6/3/2016 until 6/6/2016, 144 values per day in the range of 500-600 mg/dL
 
 ```
   Usage: smbg [options] <output> <dates> <groupId>
