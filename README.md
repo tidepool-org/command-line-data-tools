@@ -5,6 +5,7 @@ After cloning this repository, change directory to the repo and run
 `npm install -g`
 
 ## Tools
+*Examples are listed under each usage. For more examples, see the examples directory.*
 
 ### data2workbook
 *Convert JSON data to a xlsx file. Possibly coming soon: documentation.*
