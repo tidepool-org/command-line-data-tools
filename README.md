@@ -161,6 +161,7 @@ Example:
 Example:
 
 `filterdata cbg --length 100 --min 144 --days 75 --gap 14 --report report.csv -i some-data.json -o filtered-data.json -v`
+
 > This filters the data in *some-data.json* and outputs to *filtered-data.json*. The tool produces verbose output in the console. The tool filters cbg data, looking for:
 
 > - 100 contiguous days of cbg data (not every day necessarily contains cbg data)
@@ -170,7 +171,6 @@ Example:
 > - Maximum gap of 14 days without cbg data
 
 > The tool puts all other datatypes within the contiguous date range in the final dataset. The tool appends a row in *report.csv* with stats from a successful filter.
-
 
 ### stripdata
 *Strip the json data of any patient information.*
@@ -191,8 +191,14 @@ Example:
     --removeTypes <removeTypes>  Remove these data types.
     --leaveTypes <leaveTypes>    Leave these data types. Takes precedence over removal.
     --removeAll                  Remove all data types, except for what is explicitly left.
-    --hashIDs                    Pass IDs (such as _groupid and uploadId) through a one-way hash.
+    --hashIDs                    Pass IDs (such as _groupId and uploadId) through a one-way hash.
     --removeSource               Remove the source of the data, e.g. carelink.
     --removeTransmitter          Remove the transmitter id, e.g. the transmitter id for a Dexcom.
     -v, --verbose                Verbose output.
 ```
+
+Example:
+
+`stripdata --stripAll --leaveModels Bayer6200,DexG5MobRec --hashIDs --removeSource --removeTransmitter -i some-data.json -o stripped-data.json -v`
+
+> This strips the data in *some-data.json* and outputs to *stripped-data.json*. The tool produces verbose output in the console. All models and serial numbers are removed from the data, excluding the device models of *Bayer6200* and *DexG5MobRec*. All Ids that relate to PHI on the Tidepool Platform are passed through a oneway hash. The source of the data is removed. Any transmitter IDs are removed.
