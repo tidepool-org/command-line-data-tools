@@ -50,7 +50,7 @@ program
 		+ ' Default is 1 smbg value.', numberList, [1])
 	.option('--values <values>',
 		'Range for possible smbg values in mg/dL.'
-		+ 'Use comma separated values' 
+		+ ' Use comma separated values' 
 		+ ' for each date range, or one value for all dates.'
 		+ ' Default is 100 mg/dL smbg values.', numberList, [100])
 	.description('Generate smbg data.')

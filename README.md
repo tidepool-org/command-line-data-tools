@@ -79,7 +79,15 @@ Example:
 ```
 
 Example:
-`generatedata smbg sample.json 2016-06-01,2016-06-06 groupethan`
+
+`generatedata smbg sample.json 2016-5-22,2016-5-25,2016-06-01,2016-06-06 mygroupId --numPerDay 3,5 --values 122`
+
+> This generates smbg data and appends it to sample.json. All data has the _groupId *mygroupId*.
+
+> The data complies to the following date ranges:
+
+> - 5/22/2016 until 5/25/2016, 3 values per day that have the value of 122 mg/dL
+> - 6/1/2016 until 6/6/2016, 5 values per day that have the value of 122 mg/dL
 
 ### getusers
 *For a user email, retrieve the user emails that have shared data with this email.*
@@ -88,15 +96,22 @@ Example:
 
   Options:
 
-    -h, --help             output usage information
-    -V, --version          output the version number
-    -o, --output <output>  path/to/output.json
-    --dev                  Use development server. Default server is production.
-    --stg                  Use staging server. Default server is production.
-    --int                  Use integration server. Default server is production.
-    --clinic               Use clinic server. Default server is production.
-    -v, --verbose          Verbose output.
+    -h, --help                 output usage information
+    -V, --version              output the version number
+    -p, --password <password>  Password for authemail. Recommended flag for piping to another tool.
+    -o, --output <output>      path/to/output.json
+    --dev                      Use development server. Default server is production.
+    --stg                      Use staging server. Default server is production.
+    --int                      Use integration server. Default server is production.
+    --clinic                   Use clinic server. Default server is production.
+    -v, --verbose              Verbose output.
 ```
+
+Example:
+
+`getusers me@mydomain.com -o sharedwithme.txt`
+
+> This gets all of the userIds that have shared their data with a particular email and outputs to *sharedwithme.txt*. A prompt appears in the console, instead of giving the password as an option.
 
 ### getdata
 *For a user email, retrieve the json data for that user.*
@@ -119,6 +134,11 @@ Example:
     -v, --verbose              Verbose output.
 ```
 
+Example:
+
+`getdata me@mydomain.com --id someuserId --password myp@$$w0rd`
+> This gets data for *someuserId* using the given authentication email and password. It outputs to the console so the data can be piped to another tool.
+
 ### filterdata
 *Filter json data to meet specified criteria.*
 ```
@@ -137,6 +157,20 @@ Example:
     -v, --verbose          Verbose output.
     -d, --debug            Debugging logging.
 ```
+
+Example:
+
+`filterdata cbg --length 100 --min 144 --days 75 --gap 14 --report report.csv -i some-data.json -o filtered-data.json -v`
+> This filters the data in *some-data.json* and outputs to *filtered-data.json*. The tool produces verbose output in the console. The tool filters cbg data, looking for:
+
+> - 100 contiguous days of cbg data (not every day necessarily contains cbg data)
+> - Minimum 144 cbg values for a qualifying day
+> - Minimum 75 of 100 days qualify
+>     - The proportion of 75% is held if more than 100 contiguous days are found
+> - Maximum gap of 14 days without cbg data
+
+> The tool puts all other datatypes within the contiguous date range in the final dataset. The tool appends a row in *report.csv* with stats from a successful filter.
+
 
 ### stripdata
 *Strip the json data of any patient information.*
