@@ -154,7 +154,7 @@ Example:
     --length <length>      Number of contiguous days, regardless of data. Default is 1 day.
     --min <min>            Minimum number of events per day to be a qualifying day. Default is 1 event.
     --days <days>          Minimum number of days with <min> events. Default is 1 day.
-    --gap <gap>            Maximum gap of unqualifying days in <length> contiguous days. Default is 1 day.
+    --gap <gap>            Maximum gap of days without data in <length> contiguous days. Default is 1 day.
     -v, --verbose          Verbose output.
     -d, --debug            Debugging logging.
     --report <report>      Add a line to a report file summarizing results.
