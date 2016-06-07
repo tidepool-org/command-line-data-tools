@@ -23,7 +23,7 @@ program
 		'Minimum number of days with <min> events. Default is 1 day.',
 		Number, 1)
 	.option('--gap <gap>',
-		'Maximum gap of unqualifying days in <length> contiguous days.'
+		'Maximum gap of days without data in <length> contiguous days.'
 		+ ' Default is 1 day.',
 		Number, 1)
 	.option('-v, --verbose', 'Verbose output.')

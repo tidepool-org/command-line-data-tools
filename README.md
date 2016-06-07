@@ -157,6 +157,7 @@ Example:
     --gap <gap>            Maximum gap of unqualifying days in <length> contiguous days. Default is 1 day.
     -v, --verbose          Verbose output.
     -d, --debug            Debugging logging.
+    --report <report>      Add a line to a report file summarizing results.
 ```
 
 Example:
