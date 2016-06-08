@@ -15,29 +15,21 @@ program
 	.command('cbg')
 	.arguments('<output> <dates> <groupId>')
 	.option('--numPerDay <numPerDay>', 
-		'Number of events per day. Use comma separated values' 
-		+ ' for each date range, or one value for all dates.'
-		+ ' Default is 288 cbg values.', numberList, [288])
+		'Number of events per day.'
+		+ 'Use comma separated values' 
+		+ ' for a value range, or one exact value.'
+		+ ' Default is 288 cbg values per day.', numberList, [288])
 	.option('--values <values>',
 		'Range for possible cbg values in mg/dL.'
 		+ 'Use comma separated values' 
-		+ ' for each date range, or one value for all dates.'
+		+ ' for a value range, or one exact value.'
 		+ ' Default is 100 mg/dL cbg values.', numberList, [100])
 	.description('Generate cbg data.')
 	.action(function(output, dates, groupId, options) {
 		var dates = datesList(dates);
-		if (dates.length/2 !== options.numPerDay.length
-			&& options.numPerDay.length !== 1) {
-			console.log(chalk.red.bold('Must have --numPerDay specified for each date pair '
-				+ 'OR only specify one --numPerDay.'));
-			process.exit(1);
-		}
-		if (dates.length !== options.values.length
-			&& options.values.length !== 1) {
-			console.log(chalk.red.bold('Must have --values specified for each date pair '
-				+ 'OR only specify one --values.'));
-			process.exit(1);
-		}
+
+		checkDatesAndOptionsWithExit(dates, options);
+
 		generateCbgData(output, dates, groupId, options, function() {});
 	});
 
@@ -45,41 +37,35 @@ program
 	.command('smbg')
 	.arguments('<output> <dates> <groupId>')
 	.option('--numPerDay <numPerDay>', 
-		'Number of events per day. Use comma separated values' 
-		+ ' for each date range, or one value for all dates.'
-		+ ' Default is 1 smbg value.', numberList, [1])
+		'Number of events per day.'
+		+ 'Use comma separated values' 
+		+ ' for a value range, or one exact value.'
+		+ ' Default is 288 cbg values per day.', numberList, [288])
 	.option('--values <values>',
-		'Range for possible smbg values in mg/dL.'
-		+ ' Use comma separated values' 
-		+ ' for each date range, or one value for all dates.'
-		+ ' Default is 100 mg/dL smbg values.', numberList, [100])
+		'Range for possible cbg values in mg/dL.'
+		+ 'Use comma separated values' 
+		+ ' for a value range, or one exact value.'
+		+ ' Default is 100 mg/dL cbg values.', numberList, [100])
 	.description('Generate smbg data.')
 	.action(function(output, dates, groupId, options) {
 		var dates = datesList(dates);
-		if (dates.length/2 !== options.numPerDay.length
-			&& options.numPerDay.length !== 1) {
-			console.log(chalk.red.bold('Must have --numPerDay specified for each date pair '
-				+ 'OR only specify one --numPerDay.'));
-			process.exit(1);
-		}
-		if (dates.length !== options.values.length
-			&& options.values.length !== 1) {
-			console.log(chalk.red.bold('Must have --values specified for each date pair '
-				+ 'OR only specify one --values.'));
-			process.exit(1);
-		}
+
+		checkDatesAndOptionsWithExit(dates, options);
+
 		generateSmbgData(output, dates, groupId, options, function() {});
 	});
 
 program.parse(process.argv);
 
 function generateCbgData(output, dates, groupId, options, callback) {
-	generateSimpleData(output,
-						'cbg',
-						'mmol/L',
-						function(val) {
-							return val/BG_CONVERSION;
-						},
+	var extras = {
+		"type": "cbg",
+		"units": "mmol/L",
+		"value": randomValueInRange(options.values) / BG_CONVERSION
+	}
+
+	generateDataWithExtras(output,
+						extras,
 						dates,
 						groupId,
 						options,
@@ -87,62 +73,57 @@ function generateCbgData(output, dates, groupId, options, callback) {
 }
 
 function generateSmbgData(output, dates, groupId, options, callback) {
-	generateSimpleData(output,
-						'smbg',
-						'mmol/L',
-						function(val) {
-							return val/BG_CONVERSION;
-						},
+	var extras = {
+		"type": "smbg",
+		"units": "mmol/L",
+		"value": randomValueInRange(options.values) / BG_CONVERSION
+	}
+
+	generateDataWithExtras(output,
+						extras,
 						dates,
 						groupId,
 						options,
 						callback);
 }
 
-function generateSimpleData(output, type, units, conversion, dates, groupId, options, callback) {
+function generateDataWithExtras(output, extras, dates, groupId, options, callback) {
 
 	var newData = [];
 
-	for (var i = 0; i < dates.length; i++) {
-		var start = dates[i];
-		var end = dates[++i];
-		var numDays = (end.getTime() - start.getTime())
-						/ DAY_IN_MILLI;
+	var start = dates[0];
+	var end = dates[1];
 
-		for (var j = 0; j < numDays; j++) {
-			var numEvents = options.numPerDay.length === 1 ? 
-								options.numPerDay[0] 
-									: options.numPerDay[(i - 1)/2];
+	var numDays = (end.getTime() - start.getTime())
+					/ DAY_IN_MILLI;
 
-			for (var k = 0; k < numEvents; k++) {
-				var value;
-				if (options.values.length === 1) {
-					value = options.values[0];
-				} else {
-					value = Math.random() 
-						* (options.values[i] - options.values[i - 1])
-						+ options.values[i - 1];
-				}
+	for (var i = 0; i < numDays; i++) {
+		var numEvents = randomValueInRange(options.numPerDay);
 
-				var time = new Date(start);
-				time.setDate(time.getDate() + j);
+		for (var j = 0; j < numEvents; j++) {
 
-				newData.push({
-					"_groupId": groupId,
-					"clockDriftOffset": 0,
-					"conversionOffset": 0,
-					"createdTime": new Date().toISOString(),
-					"deviceId": type + " device-Serial Number",
-					"guid": "not_actually_a_guid",
-					"id": "not_actually_an_id",
-					"time": time.toISOString(),
-					"timezoneOffset": 0,
-					"type": type,
-					"units": units,
-					"uploadId": "upid_NA",
-					"value": conversion(value)
-				});
+			var time = new Date(start);
+			time.setDate(time.getDate() + i);
+
+			var common = {
+				"_groupId": groupId,
+				"clockDriftOffset": 0,
+				"conversionOffset": 0,
+				"createdTime": new Date().toISOString(),
+				"deviceId": extras.type + " device-Serial Number",
+				"deviceTime": time.toISOString(),
+				"guid": "not_actually_a_guid",
+				"id": "not_actually_an_id",
+				"time": time.toISOString(),
+				"timezoneOffset": 0,
+				"uploadId": "upid_NA"
+			};
+
+			for (var key in extras) {
+				common[key] = extras[key];
 			}
+
+			newData.push(common);
 		}
 	}
 
@@ -159,13 +140,39 @@ function generateSimpleData(output, type, units, conversion, dates, groupId, opt
 
 }
 
-function datesList(string) {
-	var dates = string.split(',');
- 	if (dates.length%2 !== 0) {
-		console.error(chalk.red.bold(
-			'Dates arguments must come in pairs.'));
+function randomValueInRange(range) {
+	if (range.length === 1) {
+		return range[0];
+	}
+	return Math.random() 
+		* (range[1] - range[0])
+		+ range[0];
+}
+
+function checkDatesAndOptionsWithExit(dates, options) {
+
+	if (dates.length !== 2) {
+		console.log(chalk.red.bold('Must have a date range with exactly'
+			+ ' two dates.'));
 		process.exit(1);
 	}
+	if (options.numPerDay.length !== 2
+		&& options.numPerDay.length !== 1) {
+		console.log(chalk.red.bold('For --numPerDay, must specify a '
+			+ 'range or an exact value.'));
+		process.exit(1);
+	}
+	if (options.values.length !== 2
+		&& options.values.length !== 1) {
+		console.log(chalk.red.bold('For --values, must specify a '
+			+ 'range or an exact value.'));
+		process.exit(1);
+	}
+
+}
+
+function datesList(string) {
+	var dates = string.split(',');
 	return dates.map(function(str) { 
 		return new Date(str);
 	});
