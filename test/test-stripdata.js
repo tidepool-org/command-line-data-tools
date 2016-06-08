@@ -3,8 +3,8 @@ var fs = require('fs');
 
 var stripdata = require('../bin/stripdata.js');
 
-const IN_FILENAME = 'test/testdata-stripdata.json';
-const OUT_FILENAME = 'test/testdataout-stripdata.json';
+const IN_FILENAME = 'test/data/testdata-stripdata.json';
+const OUT_FILENAME = 'test/data/testdataout-stripdata.json';
 
 describe('stripdata', function() {
 	
