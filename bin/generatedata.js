@@ -55,17 +55,51 @@ program
 		generateSmbgData(output, dates, groupId, options, function() {});
 	});
 
+program
+	.command('bolus')
+	.arguments('<output> <dates> <groupId> <subtype>')
+	.option('--numPerDay <numPerDay>',
+		'Number of boluses per day.'
+		+ 'Use comma separated values' 
+		+ ' for a value range, or one exact value.'
+		+ ' Default is 1 bolus per day.', numberList, [1])
+	.option('--values <values>',
+		'Range for possible bolus amount in units.'
+		+ 'Use comma separated values' 
+		+ ' for a value range, or one exact value.'
+		+ ' Default is 1 unit boluses.', numberList, [1])
+	.description('Generate bolus data.')
+	.action(function(output, dates, groupId, subtype, options) {
+		var dates = datesList(dates);
+
+		checkDatesAndOptionsWithExit(dates, options);
+		checkBolusSubtypeWithExit(subtype);
+
+		generateBolusData(output, dates, groupId, subtype, options, function() {});
+	})
+
 program.parse(process.argv);
 
 function generateCbgData(output, dates, groupId, options, callback) {
 	var extras = {
 		"type": "cbg",
-		"units": "mmol/L",
-		"value": randomValueInRange(options.values) / BG_CONVERSION
+		"units": "mmol/L"
 	}
+
+	var values = [
+		{
+			key: "value",
+			operation: function(range) {
+				return randomValueInRange(range)
+						/ BG_CONVERSION;
+			},
+			range: options.values
+		}
+	];
 
 	generateDataWithExtras(output,
 						extras,
+						values,
 						dates,
 						groupId,
 						options,
@@ -75,19 +109,68 @@ function generateCbgData(output, dates, groupId, options, callback) {
 function generateSmbgData(output, dates, groupId, options, callback) {
 	var extras = {
 		"type": "smbg",
-		"units": "mmol/L",
-		"value": randomValueInRange(options.values) / BG_CONVERSION
+		"units": "mmol/L" 
 	}
+
+	var values = [
+		{
+			key: "value",
+			operation: function(range) {
+				return randomValueInRange(range)
+						/ BG_CONVERSION;
+			},
+			range: options.values
+		}
+	];
 
 	generateDataWithExtras(output,
 						extras,
+						values,
 						dates,
 						groupId,
 						options,
 						callback);
 }
 
-function generateDataWithExtras(output, extras, dates, groupId, options, callback) {
+function generateBolusData(output, dates, groupId, subtype, options, callback) {
+	if (subtype === 'normal')
+		generateNormalBolusData(output, dates, groupId, options, callback);
+}
+
+function generateNormalBolusData(output, dates, groupId, options, callback) {
+	var amount = randomValueInRange(options.values);
+	var extras = {
+		"type": "bolus",
+		"subType": "normal"
+	}
+
+	var values = [
+		{
+			key: "normal",
+			operation: function(range) {
+				return randomValueInRange(range);
+			},
+			range: options.values
+		},
+		{
+			key: "expectedNormal",
+			operation: function(range) {
+				return randomValueInRange(range);
+			},
+			range: options.values
+		}
+	];
+
+	generateDataWithExtras(output,
+						extras,
+						values,
+						dates,
+						groupId,
+						options,
+						callback);
+}
+
+function generateDataWithExtras(output, extras, values, dates, groupId, options, callback) {
 
 	var newData = [];
 
@@ -118,6 +201,11 @@ function generateDataWithExtras(output, extras, dates, groupId, options, callbac
 				"timezoneOffset": 0,
 				"uploadId": "upid_NA"
 			};
+
+			for (var index in values) {
+				var value = values[index];
+				common[value.key] = value.operation(value.range);
+			}
 
 			for (var key in extras) {
 				common[key] = extras[key];
@@ -152,23 +240,31 @@ function randomValueInRange(range) {
 function checkDatesAndOptionsWithExit(dates, options) {
 
 	if (dates.length !== 2) {
-		console.log(chalk.red.bold('Must have a date range with exactly'
+		console.error(chalk.red.bold('Must have a date range with exactly'
 			+ ' two dates.'));
 		process.exit(1);
 	}
 	if (options.numPerDay.length !== 2
 		&& options.numPerDay.length !== 1) {
-		console.log(chalk.red.bold('For --numPerDay, must specify a '
+		console.error(chalk.red.bold('For --numPerDay, must specify a '
 			+ 'range or an exact value.'));
 		process.exit(1);
 	}
 	if (options.values.length !== 2
 		&& options.values.length !== 1) {
-		console.log(chalk.red.bold('For --values, must specify a '
+		console.error(chalk.red.bold('For --values, must specify a '
 			+ 'range or an exact value.'));
 		process.exit(1);
 	}
 
+}
+
+function checkBolusSubtypeWithExit(subtype) {
+	if (subtype !== 'normal') {
+		console.error(chalk.red.bold('Normal is currently the only '
+			+ 'supported subtype of bolus.'));
+		process.exit(1);
+	}
 }
 
 function datesList(string) {
