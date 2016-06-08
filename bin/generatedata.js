@@ -124,6 +124,9 @@ function generateSimpleData(output, type, units, conversion, dates, groupId, opt
 						+ options.values[i - 1];
 				}
 
+				var time = new Date(start);
+				time.setDate(time.getDate() + j);
+
 				newData.push({
 					"_groupId": groupId,
 					"clockDriftOffset": 0,
@@ -132,7 +135,7 @@ function generateSimpleData(output, type, units, conversion, dates, groupId, opt
 					"deviceId": type + " device-Serial Number",
 					"guid": "not_actually_a_guid",
 					"id": "not_actually_an_id",
-					"time": new Date(start + j).toISOString(),
+					"time": time.toISOString(),
 					"timezoneOffset": 0,
 					"type": type,
 					"units": units,
@@ -140,7 +143,6 @@ function generateSimpleData(output, type, units, conversion, dates, groupId, opt
 					"value": conversion(value)
 				});
 			}
-
 		}
 	}
 
@@ -176,7 +178,10 @@ function numberList(string) {
 function readExistingData(filename, callback) {
 
 	fs.exists(filename, function(exists) {
-		if (!exists) callback([]);
+		if (!exists) {
+			callback([]);
+			return;
+		}
 
 		var ifs = fs.createReadStream(filename, {encoding: 'utf8'});
 		var jsonStream = JSONStream.parse();
