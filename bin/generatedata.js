@@ -174,48 +174,6 @@ function generateDataWithExtras(output, extras, values, dates, groupId, options,
 
 	var newData = [];
 
-<<<<<<< HEAD
-	for (var i = 0; i < dates.length; i++) {
-		var start = dates[i];
-		var end = dates[++i];
-		var numDays = (end.getTime() - start.getTime())
-						/ DAY_IN_MILLI;
-
-		for (var j = 0; j < numDays; j++) {
-			var numEvents = options.numPerDay.length === 1 ? 
-								options.numPerDay[0] 
-									: options.numPerDay[(i - 1)/2];
-
-			for (var k = 0; k < numEvents; k++) {
-				var value;
-				if (options.values.length === 1) {
-					value = options.values[0];
-				} else {
-					value = Math.random() 
-						* (options.values[i] - options.values[i - 1])
-						+ options.values[i - 1];
-				}
-
-				var time = new Date(start);
-				time.setDate(time.getDate() + j);
-
-				newData.push({
-					"_groupId": groupId,
-					"clockDriftOffset": 0,
-					"conversionOffset": 0,
-					"createdTime": new Date().toISOString(),
-					"deviceId": type + " device-Serial Number",
-					"guid": "not_actually_a_guid",
-					"id": "not_actually_an_id",
-					"time": time.toISOString(),
-					"timezoneOffset": 0,
-					"type": type,
-					"units": units,
-					"uploadId": "upid_NA",
-					"value": conversion(value)
-				});
-			}
-=======
 	var start = dates[0];
 	var end = dates[1];
 
@@ -254,7 +212,6 @@ function generateDataWithExtras(output, extras, values, dates, groupId, options,
 			}
 
 			newData.push(common);
->>>>>>> generatedata-bolus
 		}
 	}
 
