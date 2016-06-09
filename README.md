@@ -51,21 +51,17 @@ Example:
   Options:
 
     -h, --help               output usage information
-    --numPerDay <numPerDay>  Number of events per day. Use comma separated values for each date range, or one value for all dates. Default is 288 cbg values.
-    --values <values>        Range for possible cbg values in mg/dL.Use comma separated values for each date range, or one value for all dates. Default is 100 mg/dL cbg values.
+    --numPerDay <numPerDay>  Number of events per day.Use comma separated values for a value range, or one exact value. Default is 288 cbg values per day.
+    --values <values>        Range for possible cbg values in mg/dL.Use comma separated values for a value range, or one exact value. Default is 100 mg/dL cbg values.
 ```
 
 Example:
 
-`generatedata cbg sample.json 2016-05-01,2016-05-10,2016-05-31,2016-06-02,2016-06-03,2016-06-06 mygroupId --numPerDay 144 --values 100,200,300,400,500,600`
+`generatedata cbg sample.json 2016-05-01,2016-05-10 mygroupId --numPerDay 144 --values 100,200`
 
 > This generates cbg data and appends it to sample.json. All data has the _groupId *mygroupId*.
 
-> The data complies to the following date ranges:
-
-> - 5/1/2016 until 5/10/2016, 144 values per day in the range of 100-200 mg/dL
-> - 5/31/2016 until 6/2/2016, 144 values per day in the range of 300-400 mg/dL
-> - 6/3/2016 until 6/6/2016, 144 values per day in the range of 500-600 mg/dL
+> The data is from 5/1/2016 until 5/10/2016 with 144 values per day in the range of 100-200 mg/dL.
 
 ```
   Usage: smbg [options] <output> <dates> <groupId>
@@ -75,20 +71,37 @@ Example:
   Options:
 
     -h, --help               output usage information
-    --numPerDay <numPerDay>  Number of events per day. Use comma separated values for each date range, or one value for all dates. Default is 1 smbg value.
-    --values <values>        Range for possible smbg values in mg/dL.Use comma separated values for each date range, or one value for all dates. Default is 100 mg/dL smbg values.
+    --numPerDay <numPerDay>  Number of events per day.Use comma separated values for a value range, or one exact value. Default is 288 cbg values per day.
+    --values <values>        Range for possible cbg values in mg/dL.Use comma separated values for a value range, or one exact value. Default is 100 mg/dL cbg values.
 ```
 
 Example:
 
-`generatedata smbg sample.json 2016-5-22,2016-5-25,2016-06-01,2016-06-06 mygroupId --numPerDay 3,5 --values 122`
+`generatedata smbg sample.json 2016-5-22,2016-5-25 mygroupId --numPerDay 3,5 --values 122`
 
 > This generates smbg data and appends it to sample.json. All data has the _groupId *mygroupId*.
 
-> The data complies to the following date ranges:
+> The data is from 5/22/2016 until 5/25/2016 with 3-5 values per day that have the value of 122 mg/dL.
 
-> - 5/22/2016 until 5/25/2016, 3 values per day that have the value of 122 mg/dL
-> - 6/1/2016 until 6/6/2016, 5 values per day that have the value of 122 mg/dL
+```
+  Usage: bolus [options] <output> <dates> <groupId> <subtype>
+
+  Generate bolus data.
+
+  Options:
+
+    -h, --help               output usage information
+    --numPerDay <numPerDay>  Number of boluses per day.Use comma separated values for a value range, or one exact value. Default is 1 bolus per day.
+    --values <values>        Range for possible bolus amount in units.Use comma separated values for a value range, or one exact value. Default is 1 unit boluses.
+```
+
+Example:
+
+`generatedata bolus sample.json 2016-6-1,2016-6-5 mygroupId normal --values 2,6`
+
+> This generates bolus data and appends it to sample.json. All data has the _groupId *mygroupId*.
+
+> The data is from 6/1/2016 until 6/5/2016 with 1 normal bolus per day that has the amount of 2-6 units.
 
 ### getusers
 *For a user email, retrieve the user emails that have shared data with this email.*
