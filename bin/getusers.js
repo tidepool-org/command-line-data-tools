@@ -36,7 +36,9 @@ program
 
 					exitOnError(error, response.statusCode,
 						'An error occured with login request. ' 
-							+ 'Bad username/password?');
+							+ 'Bad username/password? ' + error
+							+ ', ' + response.statusCode + ', '
+							+ JSON.stringify(response));
 
 					if (program.verbose) {
 						console.log(chalk.green.bold('Successful login.'));

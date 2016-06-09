@@ -7,6 +7,12 @@ var JSONStream = require('JSONStream');
 
 const DAY_IN_MILLI = 86400000;
 
+exports.program = program;
+exports.performDataFiltering = performDataFiltering;
+exports.verifySameDay = verifySameDay;
+exports.getLength = getLength;
+exports.getFirstIndexOfType = getFirstIndexOfType;
+
 program
 	.version('0.0.1')
 	.arguments('<type>')
@@ -32,10 +38,12 @@ program
 		'Add a line to a report file summarizing results.')
 	.action(function(type) {
 		program.type = type;
+
+		performDataFiltering(function() {
+			process.exit(0);
+		});
 	})
 	.parse(process.argv);
-
-performDataFiltering(function() { });
 
 function performDataFiltering(callback) {
 
@@ -148,6 +156,12 @@ function getDataToAdd(startIndex, data) {
 	var length = getLength(curSet);
 	var minQualDays = program.days / program.length * Math.max(program.length, length);
 	if (length < program.length || curSet.qualDays < minQualDays) {
+		console.log(chalk.blue('Start date: ' + curSet.start.toISOString()));
+		console.log(chalk.blue('End date: ' + curSet.end.toISOString()));
+		console.log('length: ' + length);
+		console.log('program.length: ' + program.length);
+		console.log('curSet.qualDays: ' + curSet.qualDays);
+		console.log('minQualDays: ' + minQualDays);
 		console.log(chalk.red.bold('There was no such data set that fit the criteria.'
 					+ ' Terminating program.'));
 		process.exit(1);
