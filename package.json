@@ -24,7 +24,8 @@
     "exceljs": "^0.2.8",
     "fs": "0.0.2",
     "json2csv": "^3.4.1",
-    "request": "^2.72.0"
+    "request": "^2.72.0",
+    "sort-stream2": "^1.0.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",

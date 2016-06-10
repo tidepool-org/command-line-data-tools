@@ -4,6 +4,7 @@ var program = require('commander');
 var fs = require('fs');
 var chalk = require('chalk');
 var JSONStream = require('JSONStream');
+var sort = require('sort-stream2');
 var Excel = require('exceljs');
 const COL_HEADERS = require('./excel-col-headers.js').COL_HEADERS;
 const BG_CONVERSION = 18.01559;
@@ -66,7 +67,7 @@ function convertToWorkbook(callback) {
 	}
 	
 	if (program.all || program.cbg) {
-		var cbgSheet = wb.addWorksheet('cbg', '0000CFF');
+		var cbgSheet = wb.addWorksheet('cgm', '0000CFF');
 		cbgSheet.columns = COL_HEADERS.CBG_COLS;
 		indexes.cbg = {
 			index: 1
@@ -170,6 +171,9 @@ function convertToWorkbook(callback) {
 
 	ifs
 		.pipe(jsonStream)
+		.pipe(sort(function(a, b){
+			return new Date(b.time).getTime() - new Date(a.time).getTime();
+		}))
 		.on('data', function(chunk) {
 			processDiaEvent(wb, indexes, chunk);
 		})
@@ -201,6 +205,15 @@ function makeWorkbook() {
 	});
 }
 
+function dateForDateString(datetime) {
+	return new Date(datetime)
+				.toDateString();
+}
+
+function timeForDateString(datetime) {
+	return new Date(datetime)
+				.toTimeString();
+}
 
 function processDiaEvent(wb, indexes, diaEvent) {
 	if ((program.all || program.smbg) &&
@@ -216,7 +229,7 @@ function processDiaEvent(wb, indexes, diaEvent) {
 	} else if ((program.all || program.cbg) &&
 		diaEvent.type === 'cbg') {
 		
-		var cbgSheet = wb.getWorksheet('cbg');
+		var cbgSheet = wb.getWorksheet('cgm');
 		cbgSheet.addRow(
 			processCbgEvent(
 				indexes.cbg.index++,
@@ -316,6 +329,8 @@ function processSmbgEvent(index, smbg) {
 		deviceId: smbg.deviceId,
 		deviceTime: smbg.deviceTime,
 		guid: smbg.guid,
+		localDate: dateForDateString(smbg.time),
+		localTime: timeForDateString(smbg.time),
 		time: smbg.time,
 		timezoneOffset: smbg.timezoneOffset,
 		uploadId: smbg.uploadId,
@@ -343,6 +358,8 @@ function processCbgEvent(index, cbg) {
 		deviceId: cbg.deviceId,
 		deviceTime: cbg.deviceTime,
 		guid: cbg.guid,
+		localDate: dateForDateString(cbg.time),
+		localTime: timeForDateString(cbg.time),
 		time: cbg.time,
 		timezoneOffset: cbg.timezoneOffset,
 		uploadId: cbg.uploadId,
@@ -385,6 +402,8 @@ function processCgmSettingsEvent(index, cgmSettings) {
 		riseRateAlerts: cgmSettings.rateOfChangeAlerts.riseRate.enabled.toString(),
 		riseRateAlertsRate: cgmSettings.rateOfChangeAlerts.riseRate.rate,
 		transmitterId: cgmSettings.transmitterId,
+		localDate: dateForDateString(cgmSettings.time),
+		localTime: timeForDateString(cgmSettings.time),
 		time: cgmSettings.time,
 		timezoneOffset: cgmSettings.timezoneOffset,
 		uploadId: cgmSettings.uploadId,
@@ -413,6 +432,8 @@ function processBolusEvent(index, bolus) {
 		deviceId: bolus.deviceId,
 		deviceTime: bolus.deviceTime,
 		guid: bolus.guid,
+		localDate: dateForDateString(bolus.time),
+		localTime: timeForDateString(bolus.time),
 		time: bolus.time,
 		timezoneOffset: bolus.timezoneOffset,
 		uploadId: bolus.uploadId,
@@ -449,6 +470,8 @@ function addBasalRow(sheet, basal, indexes, suppressed) {
 		scheduleName: basal.scheduleName,
 		source: basal.source,
 		deviceTime: basal.deviceTime,
+		localDate: dateForDateString(basal.time),
+		localTime: timeForDateString(basal.time),
 		time: basal.time,
 		timezoneOffset: basal.timezoneOffset,
 		clockDriftOffset: basal.clockDriftOffset,
@@ -529,6 +552,8 @@ function processBasalSchedules(sheet, indexes, pumpSettings) {
 				start:  basalSchedules[basalSchedule][i].start,
 				source: pumpSettings.source,
 				deviceTime: pumpSettings.deviceTime,
+				localDate: dateForDateString(pumpSettings.time),
+				localTime: timeForDateString(pumpSettings.time),
 				time: pumpSettings.time,
 				timezoneOffset: pumpSettings.timezoneOffset,
 				clockDriftOffset: pumpSettings.clockDriftOffset,
@@ -602,6 +627,8 @@ function processBgTarget(sheet, bgTarget, pumpSettings,
 			start:  bgTarget[i].start,
 			source: pumpSettings.source,
 			deviceTime: pumpSettings.deviceTime,
+			localDate: dateForDateString(pumpSettings.time),
+			localTime: timeForDateString(pumpSettings.time),
 			time: pumpSettings.time,
 			timezoneOffset: pumpSettings.timezoneOffset,
 			clockDriftOffset: pumpSettings.clockDriftOffset,
@@ -659,6 +686,8 @@ function processCarbRatio(sheet, carbRatio, pumpSettings,  indexes,
 			start:  carbRatio[i].start,
 			source: pumpSettings.source,
 			deviceTime: pumpSettings.deviceTime,
+			localDate: dateForDateString(pumpSettings.time),
+			localTime: timeForDateString(pumpSettings.time),
 			time: pumpSettings.time,
 			timezoneOffset: pumpSettings.timezoneOffset,
 			clockDriftOffset: pumpSettings.clockDriftOffset,
@@ -723,6 +752,8 @@ function processInsulinSensitivity(sheet, insulinSensitivity, pumpSettings,
 			start:  insulinSensitivity[i].start,
 			source: pumpSettings.source,
 			deviceTime: pumpSettings.deviceTime,
+			localDate: dateForDateString(pumpSettings.time),
+			localTime: timeForDateString(pumpSettings.time),
 			time: pumpSettings.time,
 			timezoneOffset: pumpSettings.timezoneOffset,
 			clockDriftOffset: pumpSettings.clockDriftOffset,
@@ -753,6 +784,8 @@ function processBloodKetoneEvent(index, bloodKetone) {
 		deviceId: bloodKetone.deviceId,
 		deviceTime: bloodKetone.deviceTime,
 		guid: bloodKetone.guid,
+		localDate: dateForDateString(bloodKetone.time),
+		localTime: timeForDateString(bloodKetone.time),
 		time: bloodKetone.time,
 		timezoneOffset: bloodKetone.timezoneOffset,
 		uploadId: bloodKetone.uploadId,
@@ -798,6 +831,8 @@ function processWizardEvent(index, wizard) {
 		recommendedNet: wizard.recommended.net,
 		source: wizard.source,
 		deviceTime: wizard.deviceTime,
+		localDate: dateForDateString(wizard.time),
+		localTime: timeForDateString(wizard.time),
 		time: wizard.time,
 		timezoneOffset: wizard.timezoneOffset,
 		clockDriftOffset: wizard.clockDriftOffset,
@@ -837,6 +872,8 @@ function processUploadEvent(sheet, indexes, upload) {
 										&& upload.deviceTags.length > 0) ?
 										upload.deviceTags[0] : null,
 				computerTime: upload.computerTime,
+				localDate: dateForDateString(upload.time),
+				localTime: timeForDateString(upload.time),
 				time: upload.time,
 				timezoneOffset: upload.timezoneOffset,
 				conversionOffset: upload.conversionOffset,
@@ -874,6 +911,8 @@ function processUploadEvent(sheet, indexes, upload) {
 						&& upload.deviceTags.length > 0) ?
 						upload.deviceTags[0] : null,
 			computerTime: upload.computerTime,
+			localDate: dateForDateString(upload.time),
+			localTime: timeForDateString(upload.time),
 			time: upload.time,
 			timezoneOffset: upload.timezoneOffset,
 			conversionOffset: upload.conversionOffset,
@@ -911,6 +950,8 @@ function processDeviceEvent(sheet, indexes, deviceEvent) {
 			reasonResumed: deviceEvent.reason.resumed,
 			source: deviceEvent.source,
 			deviceTime: deviceEvent.deviceTime,
+			localDate: dateForDateString(deviceEvent.time),
+			localTime: timeForDateString(deviceEvent.time),
 			time: deviceEvent.time,
 			timezoneOffset: deviceEvent.timezoneOffset,
 			clockDriftOffset: deviceEvent.clockDriftOffset,
@@ -965,6 +1006,8 @@ function processDeviceEvent(sheet, indexes, deviceEvent) {
 			primeTarget: deviceEvent.primeTarget,
 			source: deviceEvent.source,
 			deviceTime: deviceEvent.deviceTime,
+			localDate: dateForDateString(deviceEvent.time),
+			localTime: timeForDateString(deviceEvent.time),
 			time: deviceEvent.time,
 			timezoneOffset: deviceEvent.timezoneOffset,
 			clockDriftOffset: deviceEvent.clockDriftOffset,
@@ -997,6 +1040,8 @@ function processDeviceEvent(sheet, indexes, deviceEvent) {
 				reasonResumed: deviceEvent.status.reason.resumed,
 				source: deviceEvent.status.source,
 				deviceTime: deviceEvent.status.deviceTime,
+				localDate: dateForDateString(deviceEvent.time),
+				localTime: timeForDateString(deviceEvent.time),
 				time: deviceEvent.status.time,
 				timezoneOffset: deviceEvent.status.timezoneOffset,
 				clockDriftOffset: deviceEvent.status.clockDriftOffset,
