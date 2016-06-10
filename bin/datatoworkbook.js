@@ -42,7 +42,7 @@ function convertToWorkbook(callback) {
 
 	var ifs = makeInFileStream();
 
-	var jsonStream = JSONStream.parse();
+	var jsonStream = JSONStream.parse('*');
 
 	if (program.all || program.smbg || program.cbg || program.cgmSettings
 		|| program.bolus || program.basal || program.basalSchedules
@@ -55,81 +55,126 @@ function convertToWorkbook(callback) {
 		process.exit(1);
 	}
 	
+	var indexes = {};
+
 	if (program.all || program.smbg) {
 		var smbgSheet = wb.addWorksheet('smbg', 'FFC0000');
 		smbgSheet.columns = COL_HEADERS.SMBG_COLS;
+		indexes.smbg = {
+			index: 1
+		};
 	}
 	
 	if (program.all || program.cbg) {
 		var cbgSheet = wb.addWorksheet('cbg', '0000CFF');
-		cbgSheet.columns = COL_HEADERS.CBG_COLS;		
+		cbgSheet.columns = COL_HEADERS.CBG_COLS;
+		indexes.cbg = {
+			index: 1
+		};
 	}
 
 	if (program.all || program.cgmSettings) {
 		var cgmSettingsSheet = wb.addWorksheet('cgmSettings', '0000688');
 		cgmSettingsSheet.columns = COL_HEADERS.CGM_SETTINGS_COLS;
+		indexes.cgmSettings = {
+			index: 1
+		};
 	}
 	
 	if (program.all || program.bolus) {
 		var bolusSheet = wb.addWorksheet('bolus', '00CFC00');
 		bolusSheet.columns = COL_HEADERS.BOLUS_COLS;
+		indexes.bolus = {
+			index: 1
+		};
 	}
 
 	if (program.all || program.basal) {
 		var basalSheet = wb.addWorksheet('basal', '0808000');
 		basalSheet.columns = COL_HEADERS.BASAL_COLS;
+		indexes.basal = {
+			index: 1,
+			group: 1
+		};
 	}
 	
 	if (program.all || program.basalSchedules) {
 		var basalScheduleSheet = wb.addWorksheet('basalSchedules', '0068600');
 		basalScheduleSheet.columns = COL_HEADERS.BASAL_SCHEDULE_COLS;
+		indexes.basalSchedule = {
+			index: 1,
+			group: 1
+		};
 	}
 
 	if (program.all || program.bgTarget) {
 		var bgTargetSheet = wb.addWorksheet('bgTarget', '0068600');
 		bgTargetSheet.columns = COL_HEADERS.BG_TARGET_COLS;
+		indexes.bgTarget = {
+			index: 1,
+			group: 1
+		};
 	}
 	
 	if (program.all || program.carbRatio) {
 		var carbRatioSheet = wb.addWorksheet('carbRatio', '0068600');
 		carbRatioSheet.columns = COL_HEADERS.CARB_RATIO_COLS;
+		indexes.carbRatio = {
+			index: 1,
+			group: 1
+		}
 	}
 
 	if (program.all || program.insulinSensitivity) {
 		var insulinSensitivitySheet = wb.addWorksheet('insulinSensitivity', '0068600');
 		insulinSensitivitySheet.columns = COL_HEADERS.INSULIN_SENSITIVITY_COLS;
+		indexes.insulinSensitivity = {
+			index: 1,
+			group: 1
+		}
 	}
 	
 	if (program.all || program.bloodKetone) {
 		var bloodKetoneSheet = wb.addWorksheet('bloodKetone', 'FFFFC00');
 		bloodKetoneSheet.columns = COL_HEADERS.BLOOD_KETONE_COLS;
+		indexes.bloodKetone = {
+			index: 1
+		};
 	}
 
 	if (program.all || program.wizard) {
 		var wizardSheet = wb.addWorksheet('wizard', 'FFC03FF');
 		wizardSheet.columns = COL_HEADERS.WIZARD_COLS;
+		indexes.wizard = {
+			index: 1
+		};
 	}
 
 	if (program.all || program.upload) {
 		var uploadSheet = wb.addWorksheet('upload', '0800000');
 		uploadSheet.columns = COL_HEADERS.UPLOAD_COLS;
+		indexes.upload = {
+			index: 1,
+			group: 1
+		};
 	}
 
 	if (program.all || program.deviceEvent) {
 		var deviceEventSheet = wb.addWorksheet('deviceEvent', '000FFFF');
 		deviceEventSheet.columns = COL_HEADERS.DEVICE_EVENT_COLS;
+		indexes.deviceEvent = {
+			index: 1,
+			group: 1
+		};
 	}
 
 	ifs
 		.pipe(jsonStream)
 		.on('data', function(chunk) {
-			for (var i in chunk) {
-				var diaEvent = chunk[i];
-				processDiaEvent(wb, diaEvent);
-			}
+			processDiaEvent(wb, indexes, chunk);
 		})
 		.on('end', function() {
-			wb.xlsx.writeFile(program.output)
+			wb.commit()
 				.then(function() {
 					if (program.verbose) {
 						console.log(chalk.green.bold('Done converting to spreadsheet.'));
@@ -150,19 +195,23 @@ function makeInFileStream() {
 }
 
 function makeWorkbook() {
-	return new Excel.Workbook();
+	return new Excel.stream.xlsx.WorkbookWriter({
+		filename: program.output,
+		useStyles: true
+	});
 }
 
 
-function processDiaEvent(wb, diaEvent) {
+function processDiaEvent(wb, indexes, diaEvent) {
 	if ((program.all || program.smbg) &&
 		diaEvent.type === 'smbg') {
 		
 		var smbgSheet = wb.getWorksheet('smbg');
 		smbgSheet.addRow(
 			processSmbgEvent(
-				smbgSheet.lastRow.getCell('index').value,
-				diaEvent));
+				indexes.smbg.index++,
+				diaEvent))
+			.commit();
 
 	} else if ((program.all || program.cbg) &&
 		diaEvent.type === 'cbg') {
@@ -170,8 +219,9 @@ function processDiaEvent(wb, diaEvent) {
 		var cbgSheet = wb.getWorksheet('cbg');
 		cbgSheet.addRow(
 			processCbgEvent(
-				cbgSheet.lastRow.getCell('index').value,
-				diaEvent));
+				indexes.cbg.index++,
+				diaEvent))
+			.commit();
 
 	} else if ((program.all || program.cgmSettings) &&
 		diaEvent.type === 'cgmSettings'){
@@ -179,8 +229,9 @@ function processDiaEvent(wb, diaEvent) {
 		var cgmSettingsSheet = wb.getWorksheet('cgmSettings');
 		cgmSettingsSheet.addRow(
 			processCgmSettingsEvent(
-				cgmSettingsSheet.lastRow.getCell('index').value,
-				diaEvent));
+				indexes.cgmSettings.index++,
+				diaEvent))
+			.commit();
 
 	} else if ((program.all || program.bolus) &&
 		diaEvent.type === 'bolus') {
@@ -188,8 +239,9 @@ function processDiaEvent(wb, diaEvent) {
 		var bolusSheet = wb.getWorksheet('bolus');
 		bolusSheet.addRow(
 			processBolusEvent(
-				bolusSheet.lastRow.getCell('index').value,
-				diaEvent));
+				indexes.bolus.index++,
+				diaEvent))
+			.commit();
 
 	} else if ((program.all || program.basal) &&
 		diaEvent.type === 'basal') {
@@ -197,12 +249,14 @@ function processDiaEvent(wb, diaEvent) {
 		var basalSheet = wb.getWorksheet('basal');
 		processBasalEvent(
 			basalSheet,
+			indexes,
 			diaEvent);
 
 	} else if (diaEvent.type === 'pumpSettings') {
 		
 		processPumpSettingsEvent(
 			wb,
+			indexes,
 			diaEvent);
 
 	} else if ((program.all || program.bloodKetone) &&
@@ -211,8 +265,9 @@ function processDiaEvent(wb, diaEvent) {
 		var bloodKetoneSheet = wb.getWorksheet('bloodKetone');
 		bloodKetoneSheet.addRow(
 			processBloodKetoneEvent(
-				bloodKetoneSheet.lastRow.getCell('index').value,
-				diaEvent));
+				indexes.bloodKetone.index++,
+				diaEvent))
+			.commit();
 
 	} else if ((program.all || program.wizard) &&
 		diaEvent.type === 'wizard') {
@@ -220,8 +275,9 @@ function processDiaEvent(wb, diaEvent) {
 		var wizardSheet = wb.getWorksheet('wizard');
 		wizardSheet.addRow(
 			processWizardEvent(
-				wizardSheet.lastRow.getCell('index').value,
-				diaEvent));
+				indexes.wizard.index++,
+				diaEvent))
+			.commit();
 
 	} else if ((program.all || program.upload) && 
 		diaEvent.type === 'upload') {
@@ -229,6 +285,7 @@ function processDiaEvent(wb, diaEvent) {
 		var uploadSheet = wb.getWorksheet('upload');
 		processUploadEvent(
 			uploadSheet,
+			indexes,
 			diaEvent);
 
 	} else if ((program.all || program.deviceEvent) &&
@@ -237,18 +294,19 @@ function processDiaEvent(wb, diaEvent) {
 		var deviceEventSheet = wb.getWorksheet('deviceEvent');
 		processDeviceEvent(
 			deviceEventSheet,
+			indexes,
 			diaEvent);
 
 	}
 }
 
-function processSmbgEvent(lastIndex, smbg) {
+function processSmbgEvent(index, smbg) {
 	if (program.mgdL && smbg.units !== 'mg/dL') {
 		smbg.units = 'mg/dL';
 		smbg.value *= BG_CONVERSION;
 	}
 	return {
-		index: (lastIndex === 'Index' ? 1 : (lastIndex+1)),
+		index: index,
 		subType: smbg.subType,
 		units: smbg.units,
 		value: smbg.value,
@@ -270,13 +328,13 @@ function processSmbgEvent(lastIndex, smbg) {
 	};
 }
 
-function processCbgEvent(lastIndex, cbg) {
+function processCbgEvent(index, cbg) {
 	if (program.mgdL && cbg.units !== 'mg/dL') {
 		cbg.units = 'mg/dL';
 		cbg.value *= BG_CONVERSION;
 	}
 	return {
-		index: (lastIndex === 'Index' ? 1 : (lastIndex+1)),
+		index: index,
 		units: cbg.units,
 		value: cbg.value,
 		clockDriftOffset: cbg.clockDriftOffset,
@@ -297,7 +355,7 @@ function processCbgEvent(lastIndex, cbg) {
 	};
 }
 
-function processCgmSettingsEvent(lastIndex, cgmSettings) {
+function processCgmSettingsEvent(index, cgmSettings) {
 	if (program.mgdL && cgmSettings.units !== 'mg/dL') {
 		cgmSettings.units = 'mg/dL';
 		cgmSettings.highAlerts.level *= BG_CONVERSION;
@@ -306,7 +364,7 @@ function processCgmSettingsEvent(lastIndex, cgmSettings) {
 		cgmSettings.rateOfChangeAlerts.riseRate.rate *= BG_CONVERSION;
 	}
 	return {
-		index: (lastIndex === 'Index' ? 1 : (lastIndex+1)),
+		index: index,
 		units: cgmSettings.units,
 		clockDriftOffset: cgmSettings.clockDriftOffset,
 		conversionOffset: cgmSettings.conversionOffset,
@@ -339,9 +397,9 @@ function processCgmSettingsEvent(lastIndex, cgmSettings) {
 	};
 }
 
-function processBolusEvent(lastIndex, bolus) {
+function processBolusEvent(index, bolus) {
 	return {
-		index: (lastIndex === 'Index' ? 1 : (lastIndex+1)),
+		index: index,
 		subType: bolus.subType,
 		normal: bolus.normal,
 		expectedNormal: bolus.expectedNormal,
@@ -367,23 +425,20 @@ function processBolusEvent(lastIndex, bolus) {
 	};
 }
 
-function processBasalEvent(sheet, basal) {
+function processBasalEvent(sheet, indexes, basal) {
 
-	var lastIndex = sheet.lastRow.getCell('index').value;
-	var index = (lastIndex === 'Index' ? 1 : (lastIndex+1));
-
-	var lastGroup = sheet.lastRow.getCell('group').value;
-	var group = (lastGroup === 'Group' ? 1 : (lastGroup+1));
-
-	addBasalRow(sheet, basal, index, group, null);
+	addBasalRow(sheet, basal, indexes, null);
 }
 
-function addBasalRow(sheet, basal, index, group, suppressed) {
-	if (!basal) return;
+function addBasalRow(sheet, basal, indexes, suppressed) {
+	if (!basal) {
+		++indexes.basal.group;
+		return;
+	}
 
 	var basalRow = {
-		index: index,
-		group: group,
+		index: indexes.basal.index++,
+		group: indexes.basal.group,
 		suppressed: suppressed,
 		deliveryType: basal.deliveryType,
 		duration: basal.duration,
@@ -409,17 +464,18 @@ function addBasalRow(sheet, basal, index, group, suppressed) {
 		_groupId: basal._groupId
 	};
 
-	sheet.addRow(basalRow);
+	sheet.addRow(basalRow).commit();
 
-	addBasalRow(sheet, basal.suppressed, index+1, group, 'true');
+	addBasalRow(sheet, basal.suppressed, indexes, 'true');
 }
 
-function processPumpSettingsEvent(wb, pumpSettings) {
+function processPumpSettingsEvent(wb, indexes, pumpSettings) {
 
 	// Basal Schedules
 	if (program.all || program.basalSchedules) {
 		var basalSchedulesSheet = wb.getWorksheet('basalSchedules');
 		processBasalSchedules(basalSchedulesSheet,
+								indexes,
 								pumpSettings);
 	}
 	
@@ -427,6 +483,7 @@ function processPumpSettingsEvent(wb, pumpSettings) {
 	if (program.all || program.bgTarget) {
 		var bgTargetSheet = wb.getWorksheet('bgTarget');
 		processBgTargets(bgTargetSheet,
+						indexes,
 						pumpSettings);
 	}
 
@@ -434,6 +491,7 @@ function processPumpSettingsEvent(wb, pumpSettings) {
 	if (program.all || program.carbRatio) {
 		var carbRatioSheet = wb.getWorksheet('carbRatio');
 		processCarbRatios(carbRatioSheet,
+							indexes,
 							pumpSettings);		
 	}
 
@@ -441,17 +499,14 @@ function processPumpSettingsEvent(wb, pumpSettings) {
 	if (program.all || program.insulinSensitivity) {
 		var insulinSensitivitySheet = wb.getWorksheet('insulinSensitivity');
 		processInsulinSensitivities(insulinSensitivitySheet,
+									indexes,
 									pumpSettings);
 	}
 }
 
-function processBasalSchedules(sheet, pumpSettings) {
+function processBasalSchedules(sheet, indexes, pumpSettings) {
 
-	var lastIndex = sheet.lastRow.getCell('index').value;
-	var index = (lastIndex === 'Index' ? 1 : (lastIndex+1));
-
-	var lastGroup = sheet.lastRow.getCell('group').value;
-	var group = (lastGroup === 'Group' ? 1 : (lastGroup+1));
+	var group = indexes.basalSchedule.group++;
 	
 
 	var basalSchedules = pumpSettings.basalSchedules;
@@ -464,7 +519,7 @@ function processBasalSchedules(sheet, pumpSettings) {
 		// representing that particular schedule in the output 
 		for (var i in basalSchedules[basalSchedule]) {
 			var basalScheduleRow = {
-				index: index,
+				index: indexes.basalSchedule.index++,
 				group: group,
 				sequence: sequence,
 				activeSchedule: pumpSettings.activeSchedule,
@@ -488,45 +543,36 @@ function processBasalSchedules(sheet, pumpSettings) {
 				uploadId: pumpSettings.uploadId,
 				_groupId: pumpSettings._groupId
 			}
-			sheet.addRow(basalScheduleRow);
-			index++;
+			sheet.addRow(basalScheduleRow).commit();
 			sequence++;
 		}
 	}
 }
 
-function processBgTargets(sheet, pumpSettings) {
-
-	var lastIndex = sheet.lastRow.getCell('index').value;
-	var index = (lastIndex === 'Index' ? 1 : (lastIndex+1));
-
-	var lastGroup = sheet.lastRow.getCell('group').value;
-	var group = (lastGroup === 'Group' ? 1 : (lastGroup+1));
+function processBgTargets(sheet, indexes, pumpSettings) {
 
 	if (pumpSettings.bgTarget) {
 		processBgTarget(sheet, 
 						pumpSettings.bgTarget,
 						pumpSettings,
-						index, 
-						group, 
+						indexes,
 						null,
 						null);
 	} else if (pumpSettings.bgTargets) {
 		for (var i in pumpSettings.bgTargets) {
-			index = processBgTarget(sheet, 
+			processBgTarget(sheet, 
 									pumpSettings.bgTargets[i],
 									pumpSettings,
-									index, 
-									group, 
+									indexes,
 									pumpSettings.activeSchedule,
 									i);
 		}
 	}
+	++indexes.bgTarget.group;
 }
 
 function processBgTarget(sheet, bgTarget, pumpSettings, 
-			startIndex, group, activeSchedule, scheduleName) {
-	var index = startIndex;
+			indexes, activeSchedule, scheduleName) {
 	var sequence = 1;
 	for (var i in bgTarget) {
 
@@ -544,8 +590,8 @@ function processBgTarget(sheet, bgTarget, pumpSettings,
 		}
 
 		var bgTargetRow = {
-			index: index,
-			group: group,
+			index: indexes.bgTarget.index++,
+			group: indexes.bgTarget.group,
 			activeSchedule: activeSchedule,
 			scheduleName: scheduleName,
 			sequence: sequence,
@@ -570,51 +616,41 @@ function processBgTarget(sheet, bgTarget, pumpSettings,
 			uploadId: pumpSettings.uploadId,
 			_groupId: pumpSettings._groupId
 		}
-		sheet.addRow(bgTargetRow);
-		index++;
+		sheet.addRow(bgTargetRow).commit();
 		sequence++;
 	}
-	return index;
 }
 
-function processCarbRatios(sheet, pumpSettings) {
-
-	var lastIndex = sheet.lastRow.getCell('index').value;
-	var index = (lastIndex === 'Index' ? 1 : (lastIndex+1));
-
-	var lastGroup = sheet.lastRow.getCell('group').value;
-	var group = (lastGroup === 'Group' ? 1 : (lastGroup+1));
+function processCarbRatios(sheet, indexes, pumpSettings) {
 
 	if (pumpSettings.carbRatio) {
 		processCarbRatio(sheet, 
 						pumpSettings.carbRatio, 
 						pumpSettings,
-						index, 
-						group, 
+						indexes, 
 						null,
 						null);
 	} else if (pumpSettings.carbRatios) {
 		for (var i in pumpSettings.carbRatios) {
-			index = processCarbRatio(sheet, 
-									pumpSettings.carbRatios[i], 
-									pumpSettings,
-									index, 
-									group, 
-									pumpSettings.activeSchedule,
-									i);
+			processCarbRatio(sheet, 
+								pumpSettings.carbRatios[i], 
+								pumpSettings,
+								indexes, 
+								pumpSettings.activeSchedule,
+								i);
 		}
 	}
+	++indexes.carbRatio.group;
 }
 
-function processCarbRatio(sheet, carbRatio, pumpSettings,  startIndex, 
-					group, activeSchedule, scheduleName) {
-	var index = startIndex;
+function processCarbRatio(sheet, carbRatio, pumpSettings,  indexes,
+							activeSchedule, scheduleName) {
 	var sequence = 1;
 	for (var i in carbRatio) {
 
 		var carbRatioRow = {
-			index: index,
-			group: group,
+			index: indexes.carbRatio.index++,
+			group: indexes.carbRatio.group,
 			activeSchedule: activeSchedule,
 			scheduleName: scheduleName,
 			sequence: sequence,
@@ -637,27 +673,18 @@ function processCarbRatio(sheet, carbRatio, pumpSettings,  startIndex,
 			uploadId: pumpSettings.uploadId,
 			_groupId: pumpSettings._groupId
 		}
-		sheet.addRow(carbRatioRow);
-		index++;
+		sheet.addRow(carbRatioRow).commit();
 		sequence++;
 	}
-	return index;
 }
 
-function processInsulinSensitivities(sheet, pumpSettings) {
-
-	var lastIndex = sheet.lastRow.getCell('index').value;
-	var index = (lastIndex === 'Index' ? 1 : (lastIndex+1));
-
-	var lastGroup = sheet.lastRow.getCell('group').value;
-	var group = (lastGroup === 'Group' ? 1 : (lastGroup+1));
+function processInsulinSensitivities(sheet, indexes, pumpSettings) {
 
 	if (pumpSettings.insulinSensitivity) {
 		processCarbRatio(sheet, 
 						pumpSettings.insulinSensitivity, 
 						pumpSettings,
-						index, 
-						group, 
+						indexes, 
 						null,
 						null);
 	} else if (pumpSettings.insulinSensitivities) {
@@ -665,17 +692,16 @@ function processInsulinSensitivities(sheet, pumpSettings) {
 			index = processCarbRatio(sheet, 
 									pumpSettings.insulinSensitivities[i], 
 									pumpSettings,
-									index, 
-									group, 
+									indexes,
 									pumpSettings.activeSchedule,
 									i);
 		}
 	}
+	++indexes.insulinSensitivity.group;
 }
 
 function processInsulinSensitivity(sheet, insulinSensitivity, pumpSettings,
-					startIndex, group, activeSchedule, scheduleName) {
-	var index = startIndex;
+					indexes, activeSchedule, scheduleName) {
 	var sequence = 1;	
 	for (var i in insulinSensitivity) {
 		var units;
@@ -687,8 +713,8 @@ function processInsulinSensitivity(sheet, insulinSensitivity, pumpSettings,
 		}
 
 		var insulinSensitivityRow = {
-			index: index,
-			group: group,
+			index: indexes.insulinSensitivity.index++,
+			group: indexes.insulinSensitivity.group,
 			activeSchedule: activeSchedule,
 			scheduleName: scheduleName,
 			sequence: sequence,
@@ -711,16 +737,14 @@ function processInsulinSensitivity(sheet, insulinSensitivity, pumpSettings,
 			uploadId: pumpSettings.uploadId,
 			_groupId: pumpSettings._groupId
 		}
-		sheet.addRow(insulinSensitivityRow);
-		index++;
+		sheet.addRow(insulinSensitivityRow).commit();
 		sequence++;
 	}
-	return index;
 }
 
-function processBloodKetoneEvent(lastIndex, bloodKetone) {
+function processBloodKetoneEvent(index, bloodKetone) {
 	return {
-		index: (lastIndex === 'Index' ? 1 : (lastIndex+1)),
+		index: index,
 		units: bloodKetone.units,
 		value: bloodKetone.value,
 		clockDriftOffset: bloodKetone.clockDriftOffset,
@@ -741,7 +765,7 @@ function processBloodKetoneEvent(lastIndex, bloodKetone) {
 	};
 }
 
-function processWizardEvent(lastIndex, wizard) {
+function processWizardEvent(index, wizard) {
 	if (program.mgdL && wizard.units !== 'mg/dL') {
 		wizard.units = 'mg/dL';
 		if (wizard.bgInput)
@@ -757,7 +781,7 @@ function processWizardEvent(lastIndex, wizard) {
 		wizard.insulinSensitivity *= BG_CONVERSION;
 	}
 	return {
-		index: (lastIndex === 'Index' ? 1 : (lastIndex+1)),
+		index: index,
 		units: wizard.units,
 		bgInput: wizard.bgInput,
 		bgTarget: wizard.bgTarget.target,
@@ -790,13 +814,9 @@ function processWizardEvent(lastIndex, wizard) {
 	};
 }
 
-function processUploadEvent(sheet, upload) {
+function processUploadEvent(sheet, indexes, upload) {
 
-	var lastIndex = sheet.lastRow.getCell('index').value;
-	var index = (lastIndex === 'Index' ? 1 : (lastIndex+1));
-
-	var lastGroup = sheet.lastRow.getCell('group').value;
-	var group = (lastGroup === 'Group' ? 1 : (lastGroup+1));
+	var group = indexes.upload.group++;
 
 	var uploadRow;
 	if (upload.deviceModel === 'multiple') {
@@ -804,7 +824,7 @@ function processUploadEvent(sheet, upload) {
 		for (var i in upload.payload.devices) {
 
 			uploadRow = {
-				index: index,
+				index: indexes.upload.index++,
 				group: group,
 				byUser: upload.byUser,
 				hash_byUser: upload.hash_byUser,
@@ -832,15 +852,13 @@ function processUploadEvent(sheet, upload) {
 				_groupId: upload._groupId
 			};
 
-			sheet.addRow(uploadRow);
-
-			index++;
+			sheet.addRow(uploadRow).commit();
 		}
 
 	} else {
 
 		var uploadRow = {
-			index: index,
+			index: indexes.upload.index++,
 			group: group,
 			byUser: upload.byUser,
 			hash_byUser: upload.hash_byUser,
@@ -871,23 +889,19 @@ function processUploadEvent(sheet, upload) {
 			_groupId: upload._groupId
 		};
 
-		sheet.addRow(uploadRow);
+		sheet.addRow(uploadRow).commit();
 	}
 
 }
 
-function processDeviceEvent(sheet, deviceEvent) {
+function processDeviceEvent(sheet, indexes, deviceEvent) {
 
-	var lastIndex = sheet.lastRow.getCell('index').value;
-	var index = (lastIndex === 'Index' ? 1 : (lastIndex+1));
-
-	var lastGroup = sheet.lastRow.getCell('group').value;
-	var group = (lastGroup === 'Group' ? 1 : (lastGroup+1));
+	var group = indexes.deviceEvent.group++;
 
 	if (deviceEvent.subType === 'status') {
 
 		var deviceEventRow = {
-			index: index,
+			index: indexes.deviceEvent.index++,
 			group: group,
 			subType: deviceEvent.subType,
 			status: deviceEvent.status,
@@ -912,7 +926,7 @@ function processDeviceEvent(sheet, deviceEvent) {
 			_groupId: deviceEvent._groupId
 		};
 
-		sheet.addRow(deviceEventRow);
+		sheet.addRow(deviceEventRow).commit();
 
 	} else {
 
@@ -925,7 +939,7 @@ function processDeviceEvent(sheet, deviceEvent) {
 		}
 
 		var deviceEventRow = {
-			index: index,
+			index: indexes.deviceEvent.index++,
 			group: group,
 			subType: deviceEvent.subType,
 			alarmType: deviceEvent.alarmType,
@@ -966,15 +980,14 @@ function processDeviceEvent(sheet, deviceEvent) {
 			_groupId: deviceEvent._groupId
 		}
 
-		sheet.addRow(deviceEventRow);
-
+		var statusEventRow;
 		if (typeof deviceEvent.status === 'string') {
-			sheet.lastRow.getCell('status').value = deviceEvent.status;
+			deviceEventRow.status = deviceEvent.status;
 		} else if (typeof deviceEvent.status === 'object') {
 			index++;
 
-			var statusEventRow = {
-				index: index,
+			statusEventRow = {
+				index: indexes.deviceEvent.index++,
 				group: group,
 				subType: deviceEvent.status.subType,
 				status: deviceEvent.status.status,
@@ -998,9 +1011,11 @@ function processDeviceEvent(sheet, deviceEvent) {
 				uploadId: deviceEvent.status.uploadId,
 				_groupId: deviceEvent.status._groupId
 			};
-
-			sheet.addRow(statusEventRow);
 		}
+
+		sheet.addRow(deviceEventRow).commit();
+		if (statusEventRow)
+			sheet.addRow(statusEventRow).commit();
 	}
 
 }
