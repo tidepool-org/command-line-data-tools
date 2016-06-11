@@ -90,6 +90,14 @@ function convertToWorkbook(callback) {
 		};
 	}
 
+	if (program.all || program.wizard) {
+		var wizardSheet = wb.addWorksheet('wizard', 'FFC03FF');
+		wizardSheet.columns = COL_HEADERS.WIZARD_COLS;
+		indexes.wizard = {
+			index: 1
+		};
+	}
+
 	if (program.all || program.basal) {
 		var basalSheet = wb.addWorksheet('basal', '0808000');
 		basalSheet.columns = COL_HEADERS.BASAL_COLS;
@@ -139,14 +147,6 @@ function convertToWorkbook(callback) {
 		var bloodKetoneSheet = wb.addWorksheet('bloodKetone', 'FFFFC00');
 		bloodKetoneSheet.columns = COL_HEADERS.BLOOD_KETONE_COLS;
 		indexes.bloodKetone = {
-			index: 1
-		};
-	}
-
-	if (program.all || program.wizard) {
-		var wizardSheet = wb.addWorksheet('wizard', 'FFC03FF');
-		wizardSheet.columns = COL_HEADERS.WIZARD_COLS;
-		indexes.wizard = {
 			index: 1
 		};
 	}
