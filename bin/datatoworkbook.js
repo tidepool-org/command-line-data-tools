@@ -59,7 +59,7 @@ function convertToWorkbook(callback) {
 	var indexes = {};
 
 	if (program.all || program.smbg) {
-		var smbgSheet = wb.addWorksheet('smbg', 'FFC0000');
+		var smbgSheet = wb.addWorksheet('smbg', { tabColor: 'FFC0000' });
 		smbgSheet.columns = COL_HEADERS.SMBG_COLS;
 		indexes.smbg = {
 			index: 1
@@ -67,7 +67,7 @@ function convertToWorkbook(callback) {
 	}
 	
 	if (program.all || program.cbg) {
-		var cbgSheet = wb.addWorksheet('cgm', '0000CFF');
+		var cbgSheet = wb.addWorksheet('cgm', { tabColor: '0000CFF' });
 		cbgSheet.columns = COL_HEADERS.CBG_COLS;
 		indexes.cbg = {
 			index: 1
@@ -75,7 +75,7 @@ function convertToWorkbook(callback) {
 	}
 
 	if (program.all || program.cgmSettings) {
-		var cgmSettingsSheet = wb.addWorksheet('cgmSettings', '0000688');
+		var cgmSettingsSheet = wb.addWorksheet('cgmSettings', { tabColor: '0000688' });
 		cgmSettingsSheet.columns = COL_HEADERS.CGM_SETTINGS_COLS;
 		indexes.cgmSettings = {
 			index: 1
@@ -83,7 +83,7 @@ function convertToWorkbook(callback) {
 	}
 	
 	if (program.all || program.bolus) {
-		var bolusSheet = wb.addWorksheet('bolus', '00CFC00');
+		var bolusSheet = wb.addWorksheet('bolus', { tabColor: '00CFC00' });
 		bolusSheet.columns = COL_HEADERS.BOLUS_COLS;
 		indexes.bolus = {
 			index: 1
@@ -91,7 +91,7 @@ function convertToWorkbook(callback) {
 	}
 
 	if (program.all || program.wizard) {
-		var wizardSheet = wb.addWorksheet('wizard', 'FFC03FF');
+		var wizardSheet = wb.addWorksheet('wizard', { tabColor: 'FFC03FF' });
 		wizardSheet.columns = COL_HEADERS.WIZARD_COLS;
 		indexes.wizard = {
 			index: 1
@@ -99,7 +99,7 @@ function convertToWorkbook(callback) {
 	}
 
 	if (program.all || program.basal) {
-		var basalSheet = wb.addWorksheet('basal', '0808000');
+		var basalSheet = wb.addWorksheet('basal', { tabColor: '0808000' });
 		basalSheet.columns = COL_HEADERS.BASAL_COLS;
 		indexes.basal = {
 			index: 1,
@@ -108,7 +108,7 @@ function convertToWorkbook(callback) {
 	}
 	
 	if (program.all || program.basalSchedules) {
-		var basalScheduleSheet = wb.addWorksheet('basalSchedules', '0068600');
+		var basalScheduleSheet = wb.addWorksheet('basalSchedules', { tabColor: '0068600' });
 		basalScheduleSheet.columns = COL_HEADERS.BASAL_SCHEDULE_COLS;
 		indexes.basalSchedule = {
 			index: 1,
@@ -117,7 +117,7 @@ function convertToWorkbook(callback) {
 	}
 
 	if (program.all || program.bgTarget) {
-		var bgTargetSheet = wb.addWorksheet('bgTarget', '0068600');
+		var bgTargetSheet = wb.addWorksheet('bgTarget', { tabColor: '0068600' });
 		bgTargetSheet.columns = COL_HEADERS.BG_TARGET_COLS;
 		indexes.bgTarget = {
 			index: 1,
@@ -126,7 +126,7 @@ function convertToWorkbook(callback) {
 	}
 	
 	if (program.all || program.carbRatio) {
-		var carbRatioSheet = wb.addWorksheet('carbRatio', '0068600');
+		var carbRatioSheet = wb.addWorksheet('carbRatio', { tabColor: '0068600' });
 		carbRatioSheet.columns = COL_HEADERS.CARB_RATIO_COLS;
 		indexes.carbRatio = {
 			index: 1,
@@ -135,7 +135,7 @@ function convertToWorkbook(callback) {
 	}
 
 	if (program.all || program.insulinSensitivity) {
-		var insulinSensitivitySheet = wb.addWorksheet('insulinSensitivity', '0068600');
+		var insulinSensitivitySheet = wb.addWorksheet('insulinSensitivity', { tabColor: '0068600' });
 		insulinSensitivitySheet.columns = COL_HEADERS.INSULIN_SENSITIVITY_COLS;
 		indexes.insulinSensitivity = {
 			index: 1,
@@ -144,7 +144,7 @@ function convertToWorkbook(callback) {
 	}
 	
 	if (program.all || program.bloodKetone) {
-		var bloodKetoneSheet = wb.addWorksheet('bloodKetone', 'FFFFC00');
+		var bloodKetoneSheet = wb.addWorksheet('bloodKetone', { tabColor: 'FFFFC00' });
 		bloodKetoneSheet.columns = COL_HEADERS.BLOOD_KETONE_COLS;
 		indexes.bloodKetone = {
 			index: 1
@@ -152,7 +152,7 @@ function convertToWorkbook(callback) {
 	}
 
 	if (program.all || program.upload) {
-		var uploadSheet = wb.addWorksheet('upload', '0800000');
+		var uploadSheet = wb.addWorksheet('upload', { tabColor: '0800000' });
 		uploadSheet.columns = COL_HEADERS.UPLOAD_COLS;
 		indexes.upload = {
 			index: 1,
@@ -161,7 +161,7 @@ function convertToWorkbook(callback) {
 	}
 
 	if (program.all || program.deviceEvent) {
-		var deviceEventSheet = wb.addWorksheet('deviceEvent', '000FFFF');
+		var deviceEventSheet = wb.addWorksheet('deviceEvent', { tabColor: '000FFFF' });
 		deviceEventSheet.columns = COL_HEADERS.DEVICE_EVENT_COLS;
 		indexes.deviceEvent = {
 			index: 1,
@@ -172,7 +172,7 @@ function convertToWorkbook(callback) {
 	ifs
 		.pipe(jsonStream)
 		.pipe(sort(function(a, b){
-			return new Date(b.time).getTime() - new Date(a.time).getTime();
+			return new Date(a.time).getTime() - new Date(b.time).getTime();
 		}))
 		.on('data', function(chunk) {
 			processDiaEvent(wb, indexes, chunk);
@@ -200,8 +200,7 @@ function makeInFileStream() {
 
 function makeWorkbook() {
 	return new Excel.stream.xlsx.WorkbookWriter({
-		filename: program.output,
-		useStyles: true
+		filename: program.output
 	});
 }
 
