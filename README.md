@@ -19,6 +19,7 @@ After cloning this repository, change directory to the repo and run
     -i, --input <input>   path/to/input.json
     --mgdL                Convert all BG values to mg/dL.
     -a, --all             Create all pages.
+    --sort                Sort the data in chronological order. WARNING! Since sorting needs to buffer all data, this only works for smaller datasets. Will fail on large sets.
     --smbg                Create smbg page.
     --cbg                 Create cbg page.
     --cgmSettings         Create cgm settings page.
@@ -37,9 +38,9 @@ After cloning this repository, change directory to the repo and run
 
 Example:
 
-`data2workbook mydata.xlsx --mgdL -a -i mydata.json -v`
+`data2workbook mydata.xlsx --mgdL --sort -a -i mydata.json -v`
 
->This produces an excel workbook with all data types. The data is inputted from the file *mydata.json*. All values are converted to mg/dL. The process will produce verbose output.
+>This produces an excel workbook with all data types. The data is inputted from the file *mydata.json*. All values are converted to mg/dL. Data is sorted chronologically. The process produces verbose output.
 
 ### generatedata
 *Generate JSON for various data-types.*

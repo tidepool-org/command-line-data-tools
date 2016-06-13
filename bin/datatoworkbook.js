@@ -15,6 +15,9 @@ program
 	.option('-i, --input <input>', 'path/to/input.json')
 	.option('--mgdL', 'Convert all BG values to mg/dL.')
 	.option('-a, --all', 'Create all pages.')
+	.option('--sort', 'Sort the data in chronological order. ' +
+		'WARNING! Since sorting needs to buffer all data, this '
+		+ 'only works for smaller datasets. Will fail on large sets.')
 	.option('--smbg', 'Create smbg page.')
 	.option('--cbg', 'Create cbg page.')
 	.option('--cgmSettings', 'Create cgm settings page.')
@@ -169,11 +172,18 @@ function convertToWorkbook(callback) {
 		};
 	}
 
-	ifs
-		.pipe(jsonStream)
-		.pipe(sort(function(a, b){
+	var destination = jsonStream;
+	if (program.sort)
+		destination = sort(function(a, b) {
 			return new Date(a.time).getTime() - new Date(b.time).getTime();
-		}))
+		});
+
+	ifs.pipe(jsonStream);
+
+	if (program.sort)
+		jsonStream.pipe(destination);
+
+	destination
 		.on('data', function(chunk) {
 			processDiaEvent(wb, indexes, chunk);
 		})
