@@ -52,42 +52,46 @@ function performDataStripping(callback) {
 
 	var ifs = makeInFileStream();
 
-	var jsonStream = JSONStream.parse();
+	var jsonStream = JSONStream.parse('*');
 
 	var ofs = makeOutstream();
+
+	var first = true;
+	writeToOutstream(ofs, '[');
 
 	// Perform the parsing
 	ifs
 		.pipe(jsonStream)
 		.on('data', function (chunk) {
-			var allClean = [];
-			for (var i in chunk) {
-				if ((program.removeAll
-					|| program.removeTypes
-						.indexOf(chunk[i].type) >= 0)
-					&& program.leaveTypes
-						.indexOf(chunk[i].type) < 0) {
-					// Do NOT add this event to output
-					continue;
-				}
 
-				var cleanData = chunk[i];
-
-				stripModelAndSNForData(cleanData);
-
-				hashIDsForData(cleanData);
-
-				removeSourceForData(cleanData);
-
-				removeTransmitterIdForData(cleanData);
-
-				allClean.push(JSON.stringify(cleanData));
+			if ((program.removeAll
+				|| program.removeTypes
+					.indexOf(chunk.type) >= 0)
+				&& program.leaveTypes
+					.indexOf(chunk.type) < 0) {
+				// Do NOT add this event to output
+				return;
 			}
-			var cleanStr = '[' + allClean.join(',') + ']\n';
 
-			writeToOutstream(ofs, cleanStr);
+			if (first)
+				first = false;
+			else
+				writeToOutstream(ofs, ',');
+
+			var cleanData = chunk;
+
+			stripModelAndSNForData(cleanData);
+
+			hashIDsForData(cleanData);
+
+			removeSourceForData(cleanData);
+
+			removeTransmitterIdForData(cleanData);
+
+			writeToOutstream(ofs, JSON.stringify(cleanData));
 		})
 		.on('end', function() {
+			writeToOutstream(ofs, ']');
 			if (program.verbose) {
 				console.log(chalk.yellow.bold('Done writing to output.'));
 			}
@@ -164,10 +168,11 @@ function hashIDsForData(data) {
 					.update(data._groupId.toString())
 					.digest('hex');
 		delete data._groupId;
-		data.hash_uploadId = 
-			crypto.createHash('sha256')
-				.update(data.uploadId.toString())
-				.digest('hex');
+		if (data.uploadId)
+			data.hash_uploadId = 
+				crypto.createHash('sha256')
+					.update(data.uploadId.toString())
+					.digest('hex');
 		delete data.uploadId;
 		if (data.byUser)
 			data.hash_byUser = 
