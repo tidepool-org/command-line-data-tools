@@ -323,7 +323,7 @@ function processDiaEvent(wb, indexes, diaEvent) {
 }
 
 function processSmbgEvent(index, smbg) {
-	if (program.mgdL && smbg.units !== 'mg/dL') {
+	if (program.mgdL) {
 		smbg.units = 'mg/dL';
 		smbg.value *= BG_CONVERSION;
 	}
@@ -353,7 +353,7 @@ function processSmbgEvent(index, smbg) {
 }
 
 function processCbgEvent(index, cbg) {
-	if (program.mgdL && cbg.units !== 'mg/dL') {
+	if (program.mgdL) {
 		cbg.units = 'mg/dL';
 		cbg.value *= BG_CONVERSION;
 	}
@@ -382,7 +382,7 @@ function processCbgEvent(index, cbg) {
 }
 
 function processCgmSettingsEvent(index, cgmSettings) {
-	if (program.mgdL && cgmSettings.units !== 'mg/dL') {
+	if (program.mgdL) {
 		cgmSettings.units = 'mg/dL';
 		cgmSettings.highAlerts.level *= BG_CONVERSION;
 		cgmSettings.lowAlerts.level *= BG_CONVERSION;
@@ -808,7 +808,7 @@ function processBloodKetoneEvent(index, bloodKetone) {
 }
 
 function processWizardEvent(index, wizard) {
-	if (program.mgdL && wizard.units !== 'mg/dL') {
+	if (program.mgdL) {
 		wizard.units = 'mg/dL';
 		if (wizard.bgInput)
 			wizard.bgInput *= BG_CONVERSION;
@@ -981,8 +981,7 @@ function processDeviceEvent(sheet, indexes, deviceEvent) {
 	} else {
 
 		if (program.mgdL 
-			&& typeof deviceEvent.units === 'string'
-			&& deviceEvent.units !== 'mg/dL') {
+			&& typeof deviceEvent.units === 'string') {
 			
 			deviceEvent.units = 'mg/dL';
 			deviceEvent.value *= BG_CONVERSION;
