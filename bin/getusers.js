@@ -72,7 +72,9 @@ program
 
 function exitOnError(error, statusCode, message) {
 	if (error || statusCode != 200) {
-		console.error(chalk.red.bold(message));
+		console.error(chalk.red.bold(message
+						+ ': ' + statusCode
+						+ ', ' + error));
 		process.exit(1);
 	}
 }
@@ -87,11 +89,10 @@ function getEnvironment() {
 
 function getUsersFromInfo(info) {
 	var users = [];
-	for (var key in info) {
-		if (info[key].hasOwnProperty('view')
-			|| info[key].hasOwnProperty('root')) {
-			users.push(key);
-		}
+	for (var i in info) {
+		users.push(	info[i].userid
+					+ ','
+					+ info[i].profile.fullName);
 	}
 	return users;
 }
@@ -118,7 +119,7 @@ function makeLoginRequestUrl(email, password, env) {
 function makeUserAccessRequest(user_id, session_token, env) {
 	return req = {
 		url: 'https://' + env +
-			'api.tidepool.org/access/groups/' + user_id,
+			'api.tidepool.org/metadata/users/' + user_id + '/users',
 		headers: {
 			'x-tidepool-session-token': 
 				session_token

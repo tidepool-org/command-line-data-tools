@@ -9,11 +9,7 @@ var chalk = require('chalk');
 
 program
 	.version('0.0.1')
-	.arguments('<authemail>')
-	.option('--email <email>',
-		'Email to get data for.')
-	.option('--id <id>',
-		'Id to get data for.')
+	.arguments('<authemail> <id>')
 	.option('-p, --password <password>', 
 		'Password for authemail. Recommended flag for piping to another tool.')
 	.option('-o, --output <output>', 'path/to/output.json')
@@ -24,7 +20,7 @@ program
 	.option('--int', 'Use integration server. Default server is production.')
 	.option('--clinic', 'Use clinic server. Default server is production.')
 	.option('-v, --verbose', 'Verbose output.')
-	.action(function(authemail) {
+	.action(function(authemail, id) {
 		
 		var password;
 		var session_token;
@@ -51,21 +47,18 @@ program
 						console.log(chalk.green.bold('Successful login.'));
 					}
 
-					var req = makeDataQueryRequest(program.types,
+					var req = makeDataQueryRequest(id,
 											response
 												.headers['x-tidepool-session-token'],
 											env);
 					
 					var outstream = makeOutstream(program.output);
 
-					var makerequest;
-					if (program.email) makerequest = request.post;
-					else if (program.id) makerequest = request.get;
-					makerequest(req, function(error, response, body) {
+					request.get(req, function(error, response, body) {
 
 						exitOnError(error, response.statusCode, 
 							'An error occured with data request. '
-							+ 'Incorrect email/id for data? ');
+							+ 'Incorrect id for data? ');
 
 						if (program.verbose) {
 							console.log(chalk.green.bold('Successful data request.'));
@@ -117,39 +110,7 @@ function makeLoginRequestUrl(email, password, env) {
 				'@' + env + 'api.tidepool.org/auth/login';
 }
 
-function makeDataQueryRequest(types, session_token, env) {
-	if (program.email) {
-		return makeDateQueryRequestForEmail(program.email, types, session_token, env);
-	} else if (program.id) {
-		return makeDataQueryRequestForId(program.id, session_token, env);
-	}
-	console.error(chalk.red.bold('Must use either the email option or the id option.'));
-	process.exit(1);
-}
-
-function makeDateQueryRequestForEmail(email, types, session_token, env) {
-	var reqBody = 'METAQUERY WHERE emails CONTAINS ' + email
-					+ ' QUERY TYPE IN ';
-	if (types) {
-		reqBody += types;
-	} else {
-		reqBody += 'basal, bolus, cbg, cgmSettings, deviceEvent, ' +
-					'deviceMeta, pumpSettings, settings, smbg, '+
-					'upload, wizard';
-	}
-
-	return req = {
-		url: 'https://'+ env +'api.tidepool.org/query/data',
-		headers: {
-			'x-tidepool-session-token': 
-				session_token,
-			'Content-Type': 'application/json'
-		},
-		body: reqBody
-	}
-}
-
-function makeDataQueryRequestForId(id, session_token, env) {
+function makeDataQueryRequest(id, session_token, env) {
 	return req = {
 		url: 'https://'+ env +'api.tidepool.org/data/' + id,
 		headers: {
