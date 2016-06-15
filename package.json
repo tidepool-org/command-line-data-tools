@@ -12,7 +12,8 @@
     "stripdata": "./bin/stripdata.js",
     "data2workbook": "./bin/datatoworkbook.js",
     "filterdata": "./bin/filterdata.js",
-    "generatedata": "./bin/generatedata.js"
+    "generatedata": "./bin/generatedata.js",
+    "scoredata": "./bin/scoredata.js"
   },
   "dependencies": {
     "JSONStream": "^1.1.2",
@@ -25,7 +26,8 @@
     "fs": "0.0.2",
     "json2csv": "^3.4.1",
     "request": "^2.72.0",
-    "sort-stream2": "^1.0.0"
+    "sort-stream2": "^1.0.0",
+    "simple-statistics": "^2.0.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
