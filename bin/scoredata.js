@@ -122,11 +122,11 @@ function countData(data, scoring) {
 	delete curSet.curDate;
 
 	curSet.uniqueEGVPerDay = 
-		calculateUniqueEGVPerDay(curSet.uniqueEGVPerDay);
+		calculateUniqueEGVPerDay(curSet.uniqueEGVPerDay, scoring);
 	curSet.bolusRecordsPerDay =
-		calculateBolusRecordsPerDay(curSet.bolusRecordsPerDay);
+		calculateBolusRecordsPerDay(curSet.bolusRecordsPerDay, scoring);
 	curSet.exerciseRecordsPerDay = 
-		calculateExerciseRecordsPerDay(curSet.exerciseRecordsPerDay);
+		calculateExerciseRecordsPerDay(curSet.exerciseRecordsPerDay, scoring);
 	curSet.contiguousDays = getLength(start, end);
 
 	return curSet;
@@ -148,21 +148,21 @@ function incrementAndResetCurSet(curSet, scoring) {
 	curSet.exercise = 0;
 }
 
-function calculateUniqueEGVPerDay(uniqueEGVPerDayList) {
+function calculateUniqueEGVPerDay(uniqueEGVPerDayList, scoring) {
 	var propEGVPerDayList = uniqueEGVPerDayList.map(
 		function(count) {
 			return count / MAX_EGV_PER_DAY;
 	});
 
-	return meanMinusStdDev(propEGVPerDayList);
+	return percentile(propEGVPerDayList, scoring.uniqueEGVPerDay.percentile);
 }
 
-function calculateBolusRecordsPerDay(bolusRecordsPerDayList) {
-	return meanMinusStdDev(bolusRecordsPerDayList);
+function calculateBolusRecordsPerDay(bolusRecordsPerDayList, scoring) {
+	return percentile(bolusRecordsPerDayList, scoring.bolusRecordsPerDay.percentile);
 }
 
-function calculateExerciseRecordsPerDay(exerciseRecordsPerDayList) {
-	return meanMinusStdDev(exerciseRecordsPerDayList);
+function calculateExerciseRecordsPerDay(exerciseRecordsPerDayList, scoring) {
+	return percentile(exerciseRecordsPerDayList, scoring.exerciseRecordsPerDay.percentile);
 }
 
 function meanMinusStdDev(dataset) {
@@ -173,6 +173,10 @@ function meanMinusStdDev(dataset) {
 function meanMinusTwoStdDev(dataset) {
 	return ss.mean(dataset) 
 		- 2 * ss.standardDeviation(dataset);
+}
+
+function percentile(dataset, percent) {
+	return ss.quantile(dataset, percent);
 }
 
 function scoreData(countResults, scoring) {
@@ -244,8 +248,13 @@ function scoringParametersForSheet(filename, callback) {
 					'tier4': row.getCell(9).value,
 					'tier4points': row.getCell(10).value
 				};
+
 				if (row.getCell(11).value)
 					scoringRow.min = row.getCell(11).value;
+
+				if (row.getCell(12).value)
+					scoringRow.percentile = row.getCell(12).value;
+
 				scoring[row.getCell(1).value] = scoringRow;
 			})
 			callback(scoring);
