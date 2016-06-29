@@ -7,7 +7,6 @@ var JSONStream = require('JSONStream');
 
 const DAY_IN_MILLI = 86400000;
 
-exports.program = program;
 exports.performDataFiltering = performDataFiltering;
 exports.verifySameDay = verifySameDay;
 exports.getLength = getLength;
@@ -15,8 +14,7 @@ exports.getFirstIndexOfType = getFirstIndexOfType;
 
 program
 	.version('0.0.1')
-	.arguments('<type>')
-	.option('-i, --input <input>', 'path/to/input.json')
+	.arguments('<type> <input>')
 	.option('-o, --output <output>', 'path/to/output.json')
 	.option('--length <length>', 
 		'Number of contiguous days, regardless of data. Default is 1 day.',
@@ -36,8 +34,9 @@ program
 	.option('-d, --debug', 'Debugging logging.')
 	.option('--report <report>', 
 		'Add a line to a report file summarizing results.')
-	.action(function(type) {
+	.action(function(type, input) {
 		program.type = type;
+		program.input = input;
 
 		performDataFiltering(function() {
 			process.exit(0);
@@ -53,42 +52,29 @@ function performDataFiltering(callback) {
 		console.log(chalk.yellow.bold('\nReading input...'));
 	}
 
-	var ifs = makeInFileStream();
-
-	var jsonStream = JSONStream.parse();
+	if (program.input === 'test/test-filterdata.js')
+		return;
+	var data = require(program.input);
 
 	var ofs = makeOutstream();
 
-	ifs
-		.pipe(jsonStream)
-		.on('data', function (chunk) {
-			if (program.verbose) {
-				console.log(chalk.yellow.bold('Done reading input. Sorting data...'));
-			}
+	if (program.verbose) {
+		console.log(chalk.yellow.bold('Done reading input. Filtering...'));
+	}
 
-			chunk.sort(function(a, b) {
-				return new Date(b.time).getTime() - new Date(a.time).getTime();
-			});
+	var toAdd = getDataToAdd(0, data);
 
-			if (program.verbose) {
-				console.log(chalk.yellow.bold('Done sorting. Filtering...'));
-			}
+	var jsonStr = '[' + toAdd.join(',') + ']\n';
 
-			var toAdd = getDataToAdd(0, chunk);
-
-			var jsonStr = '[' + toAdd.join(',') + ']\n';
-
-			if (program.verbose) {
-				console.log(chalk.yellow.bold('Writing to output...'));
-			}
-			writeToOutstream(ofs, jsonStr);
-		})
-		.on('end', function() {
-			if (program.verbose) {
-				console.log(chalk.yellow.bold('Done writing to output.'));
-			}
-			callback();
-		});
+	if (program.verbose) {
+		console.log(chalk.yellow.bold('Writing to output...'));
+	}
+	writeToOutstream(ofs, jsonStr, function() {
+		if (program.verbose) {
+			console.log(chalk.yellow.bold('Done writing to output.'));
+		}
+		callback();
+	});
 }
 
 function getDataToAdd(startIndex, data) {
@@ -103,7 +89,16 @@ function getDataToAdd(startIndex, data) {
 	};
 	totalBack = 0;
 
-	while(i < data.length) {
+	var lastTimeForSorted = new Date(data[i].time).getTime();
+
+	while (i < data.length) {
+
+		if (lastTimeForSorted < new Date(data[i].time).getTime()) {
+			console.error('Data must be sorted. Use the \'sortdata\' tool first.');
+			process.exit(1);
+		} else {
+			lastTimeForSorted = new Date(data[i].time).getTime();
+		}
 
 		toAdd.push(JSON.stringify(data[i]));
 		curSet.end = new Date(data[i].time);
@@ -249,11 +244,14 @@ function makeOutstream() {
 	return ofs
 }
 
-function writeToOutstream(ofs, info) {
+function writeToOutstream(ofs, info, callback) {
 	if (program.output) {
-		ofs.write(info);
+		ofs.write(info, function() {
+			callback();
+		});
 	} else {
 		console.log(info);
+		callback();
 	}
 }
 

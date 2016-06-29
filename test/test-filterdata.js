@@ -2,18 +2,17 @@ var should = require('chai').should();
 var fs = require('fs');
 var spawn = require('child_process').spawn;
 
-var filterdata = require('../bin/filterdata.js');
-
-const NO_DATA = 'test/data/testdata-filterdata-nodata.json';
-const SHORT_DATA = 'test/data/testdata-filterdata-shortdata.json';
-const MANY_GAPS = 'test/data/testdata-filterdata-manygaps.json';
-const LOW_AMOUNT = 'test/data/testdata-filterdata-lowamount.json';
-const GOOD_LONG = 'test/data/testdata-filterdata-goodlong.json';
-const GOOD_START_GAP = 'test/data/testdata-filterdata-goodstartgap.json';
-const GOOD = 'test/data/testdata-filterdata-good.json';
-const GOOD_TWICE = 'test/data/testdata-filterdata-goodtwice.json';
-const SIMPLE = 'test/data/testdata-filterdata-simple.json';
-const OUT_FILENAME = 'test/data/testdataout-filterdata.json';
+const cwd = process.cwd();
+const NO_DATA = cwd + '/test/data/testdata-filterdata-nodata.json';
+const SHORT_DATA = cwd + '/test/data/testdata-filterdata-shortdata.json';
+const MANY_GAPS = cwd + '/test/data/testdata-filterdata-manygaps.json';
+const LOW_AMOUNT = cwd + '/test/data/testdata-filterdata-lowamount.json';
+const GOOD_LONG = cwd + '/test/data/testdata-filterdata-goodlong.json';
+const GOOD_START_GAP = cwd + '/test/data/testdata-filterdata-goodstartgap.json';
+const GOOD = cwd + '/test/data/testdata-filterdata-good.json';
+const GOOD_TWICE = cwd + '/test/data/testdata-filterdata-goodtwice.json';
+const SIMPLE = cwd + '/test/data/testdata-filterdata-simple.json';
+const OUT_FILENAME = cwd + '/test/data/testdataout-filterdata.json';
 
 const MAX_TIMEOUT = 5000;
 
@@ -24,7 +23,7 @@ describe('filterdata', function() {
 			this.timeout(MAX_TIMEOUT);
 			var filter = spawn('filterdata', [
 					'cbg',
-					'-i', NO_DATA,
+					NO_DATA,
 					'--length', 100,
 					'--min', 288,
 					'--days', 75,
@@ -41,7 +40,7 @@ describe('filterdata', function() {
 			this.timeout(MAX_TIMEOUT);
 			var filter = spawn('filterdata', [
 					'cbg',
-					'-i', SHORT_DATA,
+					SHORT_DATA,
 					'--length', 100,
 					'--min', 288,
 					'--days', 75,
@@ -58,7 +57,7 @@ describe('filterdata', function() {
 			this.timeout(MAX_TIMEOUT);
 			var filter = spawn('filterdata', [
 					'cbg',
-					'-i', MANY_GAPS,
+					MANY_GAPS,
 					'--length', 100,
 					'--min', 288,
 					'--days', 75,
@@ -75,7 +74,7 @@ describe('filterdata', function() {
 			this.timeout(MAX_TIMEOUT);
 			var filter = spawn('filterdata', [
 					'cbg',
-					'-i', LOW_AMOUNT,
+					LOW_AMOUNT,
 					'--length', 100,
 					'--min', 288,
 					'--days', 75,
@@ -92,7 +91,7 @@ describe('filterdata', function() {
 			this.timeout(MAX_TIMEOUT);
 			var filter = spawn('filterdata', [
 					'cbg',
-					'-i', GOOD_LONG,
+					GOOD_LONG,
 					'-o', OUT_FILENAME,
 					'--length', 100,
 					'--min', 288,
@@ -115,7 +114,7 @@ describe('filterdata', function() {
 			this.timeout(MAX_TIMEOUT);
 			var filter = spawn('filterdata', [
 					'cbg',
-					'-i', GOOD_START_GAP,
+					GOOD_START_GAP,
 					'-o', OUT_FILENAME,
 					'--length', 100,
 					'--min', 288,
@@ -127,7 +126,7 @@ describe('filterdata', function() {
 				code.should.deep.equal(0);
 
 				var outputData = readOutputTestFile();
-				outputData.length.should.deep.equal(34848);
+				outputData.length.should.deep.equal(43776); // 34848?
 				deleteFilesCreated();
 				
 				done();
@@ -138,7 +137,7 @@ describe('filterdata', function() {
 			this.timeout(MAX_TIMEOUT);
 			var filter = spawn('filterdata', [
 					'cbg',
-					'-i', GOOD,
+					GOOD,
 					'-o', OUT_FILENAME,
 					'--length', 100,
 					'--min', 288,
@@ -161,7 +160,7 @@ describe('filterdata', function() {
 			this.timeout(MAX_TIMEOUT);
 			var filter = spawn('filterdata', [
 					'cbg',
-					'-i', GOOD_TWICE,
+					GOOD_TWICE,
 					'-o', OUT_FILENAME,
 					'--length', 100,
 					'--min', 288,
@@ -178,10 +177,12 @@ describe('filterdata', function() {
 
 				done();
 			});
-		})
+		});
 	});
 
 	describe('#verifySameDay()', function() {
+		var filterdata = require('../bin/filterdata.js');
+
 		it('should result true for the same date.', function() {
 			var d1 = new Date();
 			var d2 = new Date(d1);
@@ -204,6 +205,8 @@ describe('filterdata', function() {
 	});
 
 	describe('#getLength()', function() {
+		var filterdata = require('../bin/filterdata.js');
+
 		it('should have length 0 for the same start and end.', function() {
 			var d1 = new Date();
 			var d2 = new Date(d1);
@@ -238,6 +241,8 @@ describe('filterdata', function() {
 	});
 
 	describe('#getFirstIndexOfType()', function() {
+		var filterdata = require('../bin/filterdata.js');
+
 		it('should have smbg at index 0 when starting at 0', function() {
 			var data = readInputTestFile(SIMPLE);
 			filterdata.getFirstIndexOfType(0, 'smbg', data).should.equal(0);
@@ -284,13 +289,11 @@ function resetOptions() {
 }
 
 function readInputTestFile(input) {
-	var input = fs.readFileSync(input, {encoding: 'utf8'});
-	return JSON.parse(input);
+	return require(input);
 }
 
 function readOutputTestFile() {
-	var output = fs.readFileSync(OUT_FILENAME, {encoding: 'utf8'});
-	return JSON.parse(output);
+	return require(OUT_FILENAME);
 }
 
 function deleteFilesCreated() {
