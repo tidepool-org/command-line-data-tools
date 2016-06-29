@@ -13,7 +13,8 @@
     "data2workbook": "./bin/datatoworkbook.js",
     "filterdata": "./bin/filterdata.js",
     "generatedata": "./bin/generatedata.js",
-    "scoredata": "./bin/scoredata.js"
+    "scoredata": "./bin/scoredata.js",
+    "sortdata": "./bin/sortdata.js"
   },
   "dependencies": {
     "JSONStream": "^1.1.2",

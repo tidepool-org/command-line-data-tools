@@ -17,60 +17,42 @@ program
 	.option('-o, --output <output>', 'path/to/output.json')
 	.option('-v, --verbose', 'Verbose output.')
 	.action(function(scoresheet) {
-		performDataScoring(scoresheet, function() {
+		performDataScoring(scoresheet, program.input, program.output, function() {
 			process.exit(0);
 		});
 	})
 	.parse(process.argv);
 
-function performDataScoring(scoresheet, callback) {
+function performDataScoring(scoresheet, input, output, callback) {
 	if (program.verbose) {
 		console.log(chalk.green.bold('Options:'));
 		printOptions();
 		console.log(chalk.yellow.bold('\nReading input...'));
 	}
 
-	var ifs = makeInFileStream(program.input);
+	var data = require(input);
 
-	var jsonStream = JSONStream.parse();
+	if (data.length === 0) {
+		console.error(chalk.red.bold(
+			'There must be data in the input set. Terminating program.'));
+		process.exit(1);
+	}
 
-	var data;
-	ifs
-		.pipe(jsonStream)
-		.on('data', function (chunk) {
-			if (program.verbose) {
-				console.log(chalk.yellow.bold('Done reading input. Sorting data...'));
-			}
+	if (program.verbose) {
+		console.log(chalk.yellow.bold('Done reading input. Scoring...'));
+	}
 
-			if (chunk.length === 0) {
-				console.error(chalk.red.bold(
-					'There must be data in the input set. Terminating program.'));
-				process.exit(1);
-			}
-
-			chunk.sort(function(a, b) {
-				return new Date(b.time).getTime() - new Date(a.time).getTime();
-			});
-
-			if (program.verbose) {
-				console.log(chalk.yellow.bold('Done sorting. Scoring...'));
-			}
-
-			data = chunk;
-		})
-		.on('end', function() {
-			scoringParametersForSheet(scoresheet, function(scoring) {
-				countAndScoreData(data, scoring, function (score) {
-					writeToOutput(program.output, (program.input || 'piped-in') + ': ' + score,
-						function () {
-							if (program.verbose) {
-								console.log(chalk.yellow.bold('Done scoring data.'));
-							}
-							callback();
-						});
+	scoringParametersForSheet(scoresheet, function(scoring) {
+		countAndScoreData(data, scoring, function (score) {
+			writeToOutput(output, (input || 'piped-in') + ': ' + score,
+				function () {
+					if (program.verbose) {
+						console.log(chalk.yellow.bold('Done scoring data.'));
+					}
+					callback();
 				});
-			});
 		});
+	});
 }
 
 function countAndScoreData(data, scoring, callback) {
@@ -96,7 +78,16 @@ function countData(data, scoring) {
 		'exerciseRecordsPerDay': []
 	}
 
+	var lastTimeForSorted = new Date(start).getTime();
+
 	while (i < data.length) {
+
+		if (lastTimeForSorted < new Date(data[i].time).getTime()) {
+			console.error('Data must be sorted. Use the \'sortdata\' tool first.');
+			process.exit(1);
+		} else {
+			lastTimeForSorted = new Date(data[i].time).getTime();
+		}
 
 		if (!verifySameDay(
 				curSet.curDate,
