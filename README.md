@@ -183,6 +183,26 @@ Example:
 
 > The tool puts all other datatypes within the contiguous date range in the final dataset. The tool appends a row in *report.csv* with stats from a successful filter.
 
+### sortdata
+*Sort a dataset in json format.*
+```
+  Usage: sortdata [options]
+
+  Options:
+
+    -h, --help             output usage information
+    -V, --version          output the version number
+    -i, --input <input>    path/to/input.json
+    -o, --output <output>  path/to/output.json
+    -v, --verbose          Verbose output.
+```
+
+Example:
+
+`sortdata -i some-data.json -o sorted-data.json`
+
+> This takes the data in *some-data.json*, sorts it, and outputs to *sorted-data.json*.
+
 ### stripdata
 *Strip the json data of any patient information.*
 ```
