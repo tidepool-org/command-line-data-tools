@@ -13,8 +13,6 @@ program
 	.option('-p, --password <password>', 
 		'Password for authemail. Recommended flag for piping to another tool.')
 	.option('-o, --output <output>', 'path/to/output.json')
-	.option('-t, --types <types>', 
-		'List of strings of data types. Only for email requests.', list)
 	.option('--dev', 'Use development server. Default server is production.')
 	.option('--stg', 'Use staging server. Default server is production.')
 	.option('--int', 'Use integration server. Default server is production.')
@@ -70,13 +68,6 @@ program
 		
 	})
 	.parse(process.argv);
-
-
-function list(val) {
-	return val
-		.split(',')
-		.join(', ');
-}
 
 function makeOutstream(output) {
 	var outstream;
