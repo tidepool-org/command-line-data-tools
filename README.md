@@ -19,7 +19,6 @@ After cloning this repository, change directory to the repo and run
     -i, --input <input>   path/to/input.json
     --mgdL                Convert all BG values to mg/dL.
     -a, --all             Create all pages.
-    --sort                Sort the data in chronological order. WARNING! Since sorting needs to buffer all data, this only works for smaller datasets. Will fail on large sets.
     --smbg                Create smbg page.
     --cbg                 Create cbg page.
     --cgmSettings         Create cgm settings page.
@@ -38,9 +37,9 @@ After cloning this repository, change directory to the repo and run
 
 Example:
 
-`data2workbook mydata.xlsx --mgdL --sort -a -i mydata.json -v`
+`data2workbook mydata.xlsx --mgdL -a -i mydata.json -v`
 
->This produces an excel workbook with all data types. The data is inputted from the file *mydata.json*. All values are converted to mg/dL. Data is sorted chronologically. The process produces verbose output.
+>This produces an excel workbook with all data types. The data is inputted from the file *mydata.json*. All values are converted to mg/dL. The process produces verbose output.
 
 ### generatedata
 *Generate JSON for various data-types.*
@@ -131,17 +130,14 @@ Example:
 ### getdata
 *For a user email, retrieve the json data for that user.*
 ```
-  Usage: getdata [options] <authemail>
+  Usage: getdata [options] <authemail> <id>
 
   Options:
 
     -h, --help                 output usage information
     -V, --version              output the version number
-    --email <email>            Email to get data for.
-    --id <id>                  Id to get data for.
     -p, --password <password>  Password for authemail. Recommended flag for piping to another tool.
     -o, --output <output>      path/to/output.json
-    -t, --types <types>        List of strings of data types. Only for email requests.
     --dev                      Use development server. Default server is production.
     --stg                      Use staging server. Default server is production.
     --int                      Use integration server. Default server is production.
@@ -151,19 +147,18 @@ Example:
 
 Example:
 
-`getdata me@mydomain.com --id someuserId --password myp@$$w0rd`
+`getdata me@mydomain.com someuserId --password myp@$$w0rd`
 > This gets data for *someuserId* using the given authentication email and password. It outputs to the console so the data can be piped to another tool.
 
 ### filterdata
 *Filter json data to meet specified criteria.*
 ```
-  Usage: filterdata [options] <type>
+  Usage: filterdata [options] <type> <input>
 
   Options:
 
     -h, --help             output usage information
     -V, --version          output the version number
-    -i, --input <input>    path/to/input.json
     -o, --output <output>  path/to/output.json
     --length <length>      Number of contiguous days, regardless of data. Default is 1 day.
     --min <min>            Minimum number of events per day to be a qualifying day. Default is 1 event.
@@ -176,7 +171,7 @@ Example:
 
 Example:
 
-`filterdata cbg --length 100 --min 144 --days 75 --gap 14 --report report.csv -i some-data.json -o filtered-data.json -v`
+`filterdata cbg some-data.json --length 100 --min 144 --days 75 --gap 14 --report report.csv -o filtered-data.json -v`
 
 > This filters the data in *some-data.json* and outputs to *filtered-data.json*. The tool produces verbose output in the console. The tool filters cbg data, looking for:
 
