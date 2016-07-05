@@ -161,7 +161,7 @@ function convertToWorkbook(callback) {
 	}
 
 	if (program.all || program.deviceEvent) {
-		var deviceEventSheet = wb.addWorksheet('deviceEvent', { tabColor: '000FFFF' });
+		var deviceEventSheet = wb.addWorksheet('deviceEvent and suspend', { tabColor: '000FFFF' });
 		deviceEventSheet.columns = COL_HEADERS.DEVICE_EVENT_COLS;
 		indexes.deviceEvent = {
 			index: 1,
@@ -204,7 +204,7 @@ function makeWorkbook() {
 
 function dateForDateString(datetime) {
 	return new Date(datetime)
-				.toDateString();
+				.toString();
 }
 
 function timeForDateString(datetime) {
@@ -301,7 +301,7 @@ function processDiaEvent(wb, indexes, diaEvent) {
 	} else if ((program.all || program.deviceEvent) &&
 		diaEvent.type === 'deviceEvent') {
 		
-		var deviceEventSheet = wb.getWorksheet('deviceEvent');
+		var deviceEventSheet = wb.getWorksheet('deviceEvent and suspend');
 		processDeviceEvent(
 			deviceEventSheet,
 			indexes,
@@ -315,6 +315,11 @@ function processSmbgEvent(index, smbg) {
 		smbg.units = 'mg/dL';
 		smbg.value *= BG_CONVERSION;
 	}
+
+	var localTime = new Date(smbg.time);
+	localTime.setUTCMinutes(
+		localTime.getUTCMinutes() + smbg.timezoneOffset);
+
 	return {
 		index: index,
 		subType: smbg.subType,
@@ -322,13 +327,13 @@ function processSmbgEvent(index, smbg) {
 		value: smbg.value,
 		clockDriftOffset: smbg.clockDriftOffset,
 		conversionOffset: smbg.conversionOffset,
-		createdTime: smbg.createdTime,
+		createdTime: smbg.createdTime ?
+			new Date(smbg.createdTime) : smbg.createdTime,
 		deviceId: smbg.deviceId,
-		deviceTime: smbg.deviceTime,
+		deviceTime: new Date(smbg.deviceTime),
 		guid: smbg.guid,
-		localDate: dateForDateString(smbg.time),
-		localTime: timeForDateString(smbg.time),
-		time: smbg.time,
+		localTime: localTime,
+		time: new Date(smbg.time),
 		timezoneOffset: smbg.timezoneOffset,
 		uploadId: smbg.uploadId,
 		hash_uploadId: smbg.hash_uploadId,
@@ -345,19 +350,26 @@ function processCbgEvent(index, cbg) {
 		cbg.units = 'mg/dL';
 		cbg.value *= BG_CONVERSION;
 	}
+
+	var localTime = new Date(cbg.time);
+	if (cbg.timezoneOffset)
+		localTime.setUTCMinutes(
+			localTime.getUTCMinutes() + cbg.timezoneOffset);
+
 	return {
 		index: index,
 		units: cbg.units,
 		value: cbg.value,
 		clockDriftOffset: cbg.clockDriftOffset,
 		conversionOffset: cbg.conversionOffset,
-		createdTime: cbg.createdTime,
+		createdTime: cbg.createdTime ?
+			new Date(cbg.createdTime) : null,
 		deviceId: cbg.deviceId,
-		deviceTime: cbg.deviceTime,
+		deviceTime: cbg.deviceTime ?
+			new Date(cbg.deviceTime) : null,
 		guid: cbg.guid,
-		localDate: dateForDateString(cbg.time),
-		localTime: timeForDateString(cbg.time),
-		time: cbg.time,
+		localTime: localTime,
+		time: new Date(cbg.time),
 		timezoneOffset: cbg.timezoneOffset,
 		uploadId: cbg.uploadId,
 		hash_uploadId: cbg.hash_uploadId,
@@ -377,14 +389,20 @@ function processCgmSettingsEvent(index, cgmSettings) {
 		cgmSettings.rateOfChangeAlerts.fallRate.rate *= BG_CONVERSION;
 		cgmSettings.rateOfChangeAlerts.riseRate.rate *= BG_CONVERSION;
 	}
+
+	var localTime = new Date(cgmSettings.time);
+	localTime.setUTCMinutes(
+		localTime.getUTCMinutes() + cgmSettings.timezoneOffset);
+
 	return {
 		index: index,
 		units: cgmSettings.units,
 		clockDriftOffset: cgmSettings.clockDriftOffset,
 		conversionOffset: cgmSettings.conversionOffset,
-		createdTime: cgmSettings.createdTime,
+		createdTime: cgmSettings.createdTime ?
+			new Date(cgmSettings.createdTime) : null,
 		deviceId: cgmSettings.deviceId,
-		deviceTime: cgmSettings.deviceTime,
+		deviceTime: new Date(cgmSettings.deviceTime),
 		guid: cgmSettings.guid,
 		highAlerts: cgmSettings.highAlerts.enabled.toString(),
 		highAlertsLevel: cgmSettings.highAlerts.level,
@@ -399,9 +417,8 @@ function processCgmSettingsEvent(index, cgmSettings) {
 		riseRateAlerts: cgmSettings.rateOfChangeAlerts.riseRate.enabled.toString(),
 		riseRateAlertsRate: cgmSettings.rateOfChangeAlerts.riseRate.rate,
 		transmitterId: cgmSettings.transmitterId,
-		localDate: dateForDateString(cgmSettings.time),
-		localTime: timeForDateString(cgmSettings.time),
-		time: cgmSettings.time,
+		localTime: localTime,
+		time: new Date(cgmSettings.time),
 		timezoneOffset: cgmSettings.timezoneOffset,
 		uploadId: cgmSettings.uploadId,
 		hash_uploadId: cgmSettings.hash_uploadId,
@@ -414,6 +431,11 @@ function processCgmSettingsEvent(index, cgmSettings) {
 }
 
 function processBolusEvent(index, bolus) {
+	
+	var localTime = new Date(bolus.time);
+	localTime.setUTCMinutes(
+		localTime.getUTCMinutes() + bolus.timezoneOffset);	
+
 	return {
 		index: index,
 		subType: bolus.subType,
@@ -425,13 +447,13 @@ function processBolusEvent(index, bolus) {
 		expectedDuration: bolus.expectedDuration,
 		clockDriftOffset: bolus.clockDriftOffset,
 		conversionOffset: bolus.conversionOffset,
-		createdTime: bolus.createdTime,
+		createdTime: bolus.createdTime ?
+			new Date(bolus.createdTime) : null,
 		deviceId: bolus.deviceId,
-		deviceTime: bolus.deviceTime,
+		deviceTime: new Date(bolus.deviceTime),
 		guid: bolus.guid,
-		localDate: dateForDateString(bolus.time),
-		localTime: timeForDateString(bolus.time),
-		time: bolus.time,
+		localTime: localTime,
+		time: new Date(bolus.time),
 		timezoneOffset: bolus.timezoneOffset,
 		uploadId: bolus.uploadId,
 		hash_uploadId: bolus.hash_uploadId,
@@ -454,6 +476,10 @@ function addBasalRow(sheet, basal, indexes, suppressed) {
 		return;
 	}
 
+	var localTime = new Date(basal.time);
+	localTime.setUTCMinutes(
+		localTime.getUTCMinutes() + basal.timezoneOffset);
+
 	var basalRow = {
 		index: indexes.basal.index++,
 		group: indexes.basal.group,
@@ -466,15 +492,15 @@ function addBasalRow(sheet, basal, indexes, suppressed) {
 		units: 'units/hour',
 		scheduleName: basal.scheduleName,
 		source: basal.source,
-		deviceTime: basal.deviceTime,
-		localDate: dateForDateString(basal.time),
-		localTime: timeForDateString(basal.time),
-		time: basal.time,
+		deviceTime: new Date(basal.deviceTime),
+		localTime: localTime,
+		time: new Date(basal.time),
 		timezoneOffset: basal.timezoneOffset,
 		clockDriftOffset: basal.clockDriftOffset,
 		conversionOffset: basal.conversionOffset,
 		id: basal.id,
-		createdTime: basal.createdTime,
+		createdTime: basal.createdTime ?
+			new Date(basal.createdTime) : null,
 		hash_uploadId: basal.hash_uploadId,
 		hash_groupId: basal.hash_groupId,
 		deviceId: basal.deviceId,
@@ -533,6 +559,11 @@ function processBasalSchedules(sheet, indexes, pumpSettings) {
 	for (var basalSchedule in basalSchedules) {
 		
 		var sequence = 1;
+
+		var localTime = new Date(pumpSettings.time);
+		localTime.setUTCMinutes(
+			localTime.getUTCMinutes() + pumpSettings.timezoneOffset);
+
 		// PLEASE VERIFY IN CODE REVIEW
 		// If there are no values for a particular schedule
 		// (i.e. "pattern a":[]) then there will be no rows
@@ -548,15 +579,15 @@ function processBasalSchedules(sheet, indexes, pumpSettings) {
 				rate: basalSchedules[basalSchedule][i].rate,
 				start:  basalSchedules[basalSchedule][i].start,
 				source: pumpSettings.source,
-				deviceTime: pumpSettings.deviceTime,
-				localDate: dateForDateString(pumpSettings.time),
-				localTime: timeForDateString(pumpSettings.time),
-				time: pumpSettings.time,
+				deviceTime: new Date(pumpSettings.deviceTime),
+				localTime: localTime,
+				time: new Date(pumpSettings.time),
 				timezoneOffset: pumpSettings.timezoneOffset,
 				clockDriftOffset: pumpSettings.clockDriftOffset,
 				conversionOffset: pumpSettings.conversionOffset,
 				id: pumpSettings.id,
-				createdTime: pumpSettings.createdTime,
+				createdTime: pumpSettings.createdTime ?
+					new Date(pumpSettings.createdTime) : null,
 				hash_uploadId: pumpSettings.hash_uploadId,
 				hash_groupId: pumpSettings.hash_groupId,
 				deviceId: pumpSettings.deviceId,
@@ -611,6 +642,10 @@ function processBgTarget(sheet, bgTarget, pumpSettings,
 			units = 'mmol/L';
 		}
 
+		var localTime = new Date(pumpSettings.time);
+		localTime.setUTCMinutes(
+			localTime.getUTCMinutes() + pumpSettings.timezoneOffset);
+
 		var bgTargetRow = {
 			index: indexes.bgTarget.index++,
 			group: indexes.bgTarget.group,
@@ -623,15 +658,15 @@ function processBgTarget(sheet, bgTarget, pumpSettings,
 			target: bgTarget[i].target,
 			start:  bgTarget[i].start,
 			source: pumpSettings.source,
-			deviceTime: pumpSettings.deviceTime,
-			localDate: dateForDateString(pumpSettings.time),
-			localTime: timeForDateString(pumpSettings.time),
-			time: pumpSettings.time,
+			deviceTime: new Date(pumpSettings.deviceTime),
+			localTime: localTime,
+			time: new Date(pumpSettings.time),
 			timezoneOffset: pumpSettings.timezoneOffset,
 			clockDriftOffset: pumpSettings.clockDriftOffset,
 			conversionOffset: pumpSettings.conversionOffset,
 			id: pumpSettings.id,
-			createdTime: pumpSettings.createdTime,
+			createdTime: pumpSettings.createdTime ?
+				new Date(pumpSettings).createdTime : null,
 			hash_uploadId: pumpSettings.hash_uploadId,
 			hash_groupId: pumpSettings.hash_groupId,
 			deviceId: pumpSettings.deviceId,
@@ -672,6 +707,10 @@ function processCarbRatio(sheet, carbRatio, pumpSettings,  indexes,
 	var sequence = 1;
 	for (var i in carbRatio) {
 
+		var localTime = new Date(pumpSettings.time);
+		localTime.setUTCMinutes(
+			localTime.getUTCMinutes() + pumpSettings.timezoneOffset);
+
 		var carbRatioRow = {
 			index: indexes.carbRatio.index++,
 			group: indexes.carbRatio.group,
@@ -683,14 +722,14 @@ function processCarbRatio(sheet, carbRatio, pumpSettings,  indexes,
 			start:  carbRatio[i].start,
 			source: pumpSettings.source,
 			deviceTime: pumpSettings.deviceTime,
-			localDate: dateForDateString(pumpSettings.time),
-			localTime: timeForDateString(pumpSettings.time),
-			time: pumpSettings.time,
+			localTime: localTime,
+			time: new Date(pumpSettings.time),
 			timezoneOffset: pumpSettings.timezoneOffset,
 			clockDriftOffset: pumpSettings.clockDriftOffset,
 			conversionOffset: pumpSettings.conversionOffset,
 			id: pumpSettings.id,
-			createdTime: pumpSettings.createdTime,
+			createdTime: pumpSettings.createdTime ?
+				new Date(pumpSettings.createdTime) : null,
 			hash_uploadId: pumpSettings.hash_uploadId,
 			hash_groupId: pumpSettings.hash_groupId,
 			deviceId: pumpSettings.deviceId,
@@ -705,7 +744,7 @@ function processCarbRatio(sheet, carbRatio, pumpSettings,  indexes,
 }
 
 function processInsulinSensitivities(sheet, indexes, pumpSettings) {
-
+	
 	if (pumpSettings.insulinSensitivity) {
 		processCarbRatio(sheet, 
 						pumpSettings.insulinSensitivity, 
@@ -738,6 +777,10 @@ function processInsulinSensitivity(sheet, insulinSensitivity, pumpSettings,
 			units = 'mmol/L/unit';
 		}
 
+		var localTime = new Date(pumpSettings.time);
+		localTime.setUTCMinutes(
+			localTime.getUTCMinutes() + pumpSettings.timezoneOffset);
+
 		var insulinSensitivityRow = {
 			index: indexes.insulinSensitivity.index++,
 			group: indexes.insulinSensitivity.group,
@@ -748,15 +791,15 @@ function processInsulinSensitivity(sheet, insulinSensitivity, pumpSettings,
 			amount: insulinSensitivity[i].amount,
 			start:  insulinSensitivity[i].start,
 			source: pumpSettings.source,
-			deviceTime: pumpSettings.deviceTime,
-			localDate: dateForDateString(pumpSettings.time),
-			localTime: timeForDateString(pumpSettings.time),
-			time: pumpSettings.time,
+			deviceTime: new Date(pumpSettings.deviceTime),
+			localTime: localTime,
+			time: new Date(pumpSettings.time),
 			timezoneOffset: pumpSettings.timezoneOffset,
 			clockDriftOffset: pumpSettings.clockDriftOffset,
 			conversionOffset: pumpSettings.conversionOffset,
 			id: pumpSettings.id,
-			createdTime: pumpSettings.createdTime,
+			createdTime: pumpSettings.createdTime ?
+				new Date(pumpSettings.createdTime) : null,
 			hash_uploadId: pumpSettings.hash_uploadId,
 			hash_groupId: pumpSettings.hash_groupId,
 			deviceId: pumpSettings.deviceId,
@@ -771,19 +814,23 @@ function processInsulinSensitivity(sheet, insulinSensitivity, pumpSettings,
 }
 
 function processBloodKetoneEvent(index, bloodKetone) {
+	var localTime = new Date(bloodKetone.time);
+	localTime.setUTCMinutes(
+		localTime.getUTCMinutes() + bloodKetone.timezoneOffset);	
+
 	return {
 		index: index,
 		units: bloodKetone.units,
 		value: bloodKetone.value,
 		clockDriftOffset: bloodKetone.clockDriftOffset,
 		conversionOffset: bloodKetone.conversionOffset,
-		createdTime: bloodKetone.createdTime,
+		createdTime: bloodKetone.createdTime ?
+			new Date(bloodKetone.createdTime) : null,
 		deviceId: bloodKetone.deviceId,
-		deviceTime: bloodKetone.deviceTime,
+		deviceTime: new Date(bloodKetone.deviceTime),
 		guid: bloodKetone.guid,
-		localDate: dateForDateString(bloodKetone.time),
-		localTime: timeForDateString(bloodKetone.time),
-		time: bloodKetone.time,
+		localTime: localTime,
+		time: new Date(bloodKetone.time),
 		timezoneOffset: bloodKetone.timezoneOffset,
 		uploadId: bloodKetone.uploadId,
 		hash_uploadId: bloodKetone.hash_uploadId,
@@ -810,6 +857,11 @@ function processWizardEvent(index, wizard) {
 			wizard.bgTarget.range *= BG_CONVERSION;
 		wizard.insulinSensitivity *= BG_CONVERSION;
 	}
+
+	var localTime = new Date(wizard.time);
+	localTime.setUTCMinutes(
+		localTime.getUTCMinutes() + wizard.timezoneOffset);
+
 	return {
 		index: index,
 		units: wizard.units,
@@ -827,15 +879,15 @@ function processWizardEvent(index, wizard) {
 		recommendedCorrection: wizard.recommended.correction,
 		recommendedNet: wizard.recommended.net,
 		source: wizard.source,
-		deviceTime: wizard.deviceTime,
-		localDate: dateForDateString(wizard.time),
-		localTime: timeForDateString(wizard.time),
-		time: wizard.time,
+		deviceTime: new Date(wizard.deviceTime),
+		localTime: localTime,
+		time: new Date(wizard.time),
 		timezoneOffset: wizard.timezoneOffset,
 		clockDriftOffset: wizard.clockDriftOffset,
 		conversionOffset: wizard.conversionOffset,
 		id: wizard.id,
-		createdTime: wizard.createdTime,
+		createdTime: wizard.createdTime ?
+			new Date(wizard.createdTime) : null,
 		hash_uploadId: wizard.hash_uploadId,
 		hash_groupId: wizard.hash_groupId,
 		deviceId: wizard.deviceId,
@@ -855,6 +907,11 @@ function processUploadEvent(sheet, indexes, upload) {
 
 		for (var i in upload.payload.devices) {
 
+			var localTime = new Date(upload.time);
+			if (upload.timezoneOffset)
+				localTime.setUTCMinutes(
+					localTime.getUTCMinutes() + upload.timezoneOffset);			
+
 			uploadRow = {
 				index: indexes.upload.index++,
 				group: group,
@@ -868,15 +925,16 @@ function processUploadEvent(sheet, indexes, upload) {
 				deviceTag: (upload.deviceTags
 										&& upload.deviceTags.length > 0) ?
 										upload.deviceTags[0] : null,
-				computerTime: upload.computerTime,
-				localDate: dateForDateString(upload.time),
-				localTime: timeForDateString(upload.time),
-				time: upload.time,
+				computerTime: upload.computerTime ?
+					new Date(upload.computerTime) : null,
+				localTime: localTime,
+				time: new Date(upload.time),
 				timezoneOffset: upload.timezoneOffset,
 				conversionOffset: upload.conversionOffset,
 				timeProcessing: upload.timeProcessing,
 				id: upload.id,
-				createdTime: upload.createdTime,
+				createdTime: upload.createdTime ?
+					new Date(upload.createdTime) : null,
 				hash_uploadId: upload.hash_uploadId,
 				hash_groupId: upload.hash_groupId,
 				payload: JSON.stringify(upload.payload),
@@ -890,6 +948,11 @@ function processUploadEvent(sheet, indexes, upload) {
 		}
 
 	} else {
+
+		var localTime = new Date(upload.time);
+		if (upload.timezoneOffset)
+			localTime.setUTCMinutes(
+				localTime.getUTCMinutes() + upload.timezoneOffset);
 
 		var uploadRow = {
 			index: indexes.upload.index++,
@@ -907,15 +970,16 @@ function processUploadEvent(sheet, indexes, upload) {
 			deviceTag: (upload.deviceTags
 						&& upload.deviceTags.length > 0) ?
 						upload.deviceTags[0] : null,
-			computerTime: upload.computerTime,
-			localDate: dateForDateString(upload.time),
-			localTime: timeForDateString(upload.time),
-			time: upload.time,
+			computerTime: upload.computerTime ?
+				new Date(upload.computerTime) : null,
+			localTime: localTime,
+			time: new Date(upload.time),
 			timezoneOffset: upload.timezoneOffset,
 			conversionOffset: upload.conversionOffset,
 			timeProcessing: upload.timeProcessing,
 			id: upload.id,
-			createdTime: upload.createdTime,
+			createdTime: upload.createdTime ?
+				new Date(upload.createdTime) : null,
 			hash_uploadId: upload.hash_uploadId,
 			hash_groupId: upload.hash_groupId,
 			payload: JSON.stringify(upload.payload),
@@ -936,6 +1000,10 @@ function processDeviceEvent(sheet, indexes, deviceEvent) {
 
 	if (deviceEvent.subType === 'status') {
 
+		var localTime = new Date(deviceEvent.time);
+		localTime.setUTCMinutes(
+			localTime.getUTCMinutes() + deviceEvent.timezoneOffset);
+
 		var deviceEventRow = {
 			index: indexes.deviceEvent.index++,
 			group: group,
@@ -946,15 +1014,15 @@ function processDeviceEvent(sheet, indexes, deviceEvent) {
 			reasonSuspended: deviceEvent.reason.suspended,
 			reasonResumed: deviceEvent.reason.resumed,
 			source: deviceEvent.source,
-			deviceTime: deviceEvent.deviceTime,
-			localDate: dateForDateString(deviceEvent.time),
-			localTime: timeForDateString(deviceEvent.time),
-			time: deviceEvent.time,
+			deviceTime: new Date(deviceEvent.deviceTime),
+			localTime: localTime,
+			time: new Date(deviceEvent.time),
 			timezoneOffset: deviceEvent.timezoneOffset,
 			clockDriftOffset: deviceEvent.clockDriftOffset,
 			conversionOffset: deviceEvent.conversionOffset,
 			id: deviceEvent.id,
-			createdTime: deviceEvent.createdTime,
+			createdTime: deviceEvent.createdTime ?
+				new Date(deviceEvent.createdTime) : null,
 			hash_uploadId: deviceEvent.hash_uploadId,
 			hash_groupId: deviceEvent.hash_groupId,
 			deviceId: deviceEvent.deviceId,
@@ -974,6 +1042,10 @@ function processDeviceEvent(sheet, indexes, deviceEvent) {
 			deviceEvent.units = 'mg/dL';
 			deviceEvent.value *= BG_CONVERSION;
 		}
+
+		var localTime = new Date(deviceEvent.time);
+		localTime.setUTCMinutes(
+			localTime.getUTCMinutes() + deviceEvent.timezoneOffset);
 
 		var deviceEventRow = {
 			index: indexes.deviceEvent.index++,
@@ -1001,15 +1073,15 @@ function processDeviceEvent(sheet, indexes, deviceEvent) {
 					deviceEvent.change.timezone : null,
 			primeTarget: deviceEvent.primeTarget,
 			source: deviceEvent.source,
-			deviceTime: deviceEvent.deviceTime,
-			localDate: dateForDateString(deviceEvent.time),
-			localTime: timeForDateString(deviceEvent.time),
-			time: deviceEvent.time,
+			deviceTime: new Date(deviceEvent.deviceTime),
+			localTime: localTime,
+			time: new Date(deviceEvent.time),
 			timezoneOffset: deviceEvent.timezoneOffset,
 			clockDriftOffset: deviceEvent.clockDriftOffset,
 			conversionOffset: deviceEvent.conversionOffset,
 			id: deviceEvent.id,
-			createdTime: deviceEvent.createdTime,
+			createdTime: deviceEvent.createdTime ?
+				new Date(deviceEvent.createdTime) : null,
 			hash_uploadId: deviceEvent.hash_uploadId,
 			hash_groupId: deviceEvent.hash_groupId,
 			deviceId: deviceEvent.deviceId,
@@ -1025,6 +1097,10 @@ function processDeviceEvent(sheet, indexes, deviceEvent) {
 		} else if (typeof deviceEvent.status === 'object') {
 			index++;
 
+			var localTime = new Date(deviceEvent.time);
+			localTime.setUTCMinutes(
+				localTime.getUTCMinutes() + deviceEvent.timezoneOffset);
+
 			statusEventRow = {
 				index: indexes.deviceEvent.index++,
 				group: group,
@@ -1035,15 +1111,15 @@ function processDeviceEvent(sheet, indexes, deviceEvent) {
 				reasonSuspended: deviceEvent.status.reason.suspended,
 				reasonResumed: deviceEvent.status.reason.resumed,
 				source: deviceEvent.status.source,
-				deviceTime: deviceEvent.status.deviceTime,
-				localDate: dateForDateString(deviceEvent.time),
-				localTime: timeForDateString(deviceEvent.time),
-				time: deviceEvent.status.time,
+				deviceTime: new Date(deviceEvent.status.deviceTime),
+				localTime: localTime,
+				time: new Date(deviceEvent.status.time),
 				timezoneOffset: deviceEvent.status.timezoneOffset,
 				clockDriftOffset: deviceEvent.status.clockDriftOffset,
 				conversionOffset: deviceEvent.status.conversionOffset,
 				id: deviceEvent.status.id,
-				createdTime: deviceEvent.status.createdTime,
+				createdTime: deviceEvent.status.createdTime ?
+					new Date(deviceEvent.status.createdTime) : null,
 				hash_uploadId: deviceEvent.status.hash_uploadId,
 				hash_groupId: deviceEvent.status.hash_groupId,
 				deviceId: deviceEvent.status.deviceId,
