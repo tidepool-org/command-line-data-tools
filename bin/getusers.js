@@ -112,14 +112,12 @@ function outputToOutstream(output, users) {
 }
 
 function makeLoginRequestUrl(email, password, env) {
-	return 'https://' + email + ':' + password +
-				'@' + env + 'api.tidepool.org/auth/login';
+	return `https://${encodeURIComponent(email)}:${encodeURIComponent(password)}@${env}api.tidepool.org/auth/login`;
 }
 
 function makeUserAccessRequest(user_id, session_token, env) {
 	return req = {
-		url: 'https://' + env +
-			'api.tidepool.org/metadata/users/' + user_id + '/users',
+		url: `https://${env}api.tidepool.org/metadata/users/${user_id}/users`,
 		headers: {
 			'x-tidepool-session-token': 
 				session_token
