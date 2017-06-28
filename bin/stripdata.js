@@ -16,15 +16,15 @@ program
 	.version('0.0.1')
 	.option('-i, --input <input>', 'path/to/input.json')
 	.option('-o, --output <output>', 'path/to/output.json')
-	.option('--stripModels <stripModels>', 
+	.option('--stripModels <stripModels>',
 		'Strip model name for these models. e.g. Anonymous Pump', list, [])
-	.option('--stripSNs <stripSNs>', 
+	.option('--stripSNs <stripSNs>',
 		'Strip serial number for these models.', list, [])
-	.option('--leaveModels <leaveModels>', 
+	.option('--leaveModels <leaveModels>',
 		'Leave model for these models. Takes precedence over strip.', list, [])
-	.option('--leaveSNs <leaveSNs>', 
+	.option('--leaveSNs <leaveSNs>',
 		'Leave serial number for these models. Takes precedence over strip.', list, [])
-	.option('--stripAll', 
+	.option('--stripAll',
 		'Strip all of the data, except for what is explicitly left.')
 	.option('--removeTypes <removeTypes>',
 		'Remove these data types.', list, [])
@@ -80,6 +80,8 @@ function performDataStripping(callback) {
 
 			var cleanData = chunk;
 
+			removeIDsAndPayload(cleanData);
+
 			stripModelAndSNForData(cleanData);
 
 			hashIDsForData(cleanData);
@@ -119,6 +121,21 @@ function splitDeviceId(deviceId) {
 	}
 	// Index 0 has model, 1 has serial
 	return retlist;
+}
+
+function removeIDsAndPayload(data) {
+	if (program.stripAll) {
+		if (data.payload)
+			delete data.payload;
+		if (data.id)
+			delete data.id;
+		if (data.guid)
+			delete data.guid;
+		if (data.bolus)
+			delete data.bolus;
+		if (data.suppressed)
+			delete data.suppressed;
+	}
 }
 
 function stripModelAndSNForData(data) {
@@ -163,23 +180,23 @@ function stripModelAndSNForData(data) {
 function hashIDsForData(data) {
 	if (program.hashIDs) {
 		if (data._groupId)
-			data.hash_groupId = 
+			data.hash_groupId =
 				crypto.createHash('sha256')
 					.update(data._groupId.toString())
 					.digest('hex');
 		delete data._groupId;
 		if (data.uploadId)
-			data.hash_uploadId = 
+			data.hash_uploadId =
 				crypto.createHash('sha256')
 					.update(data.uploadId.toString())
 					.digest('hex');
 		delete data.uploadId;
 		if (data.byUser)
-			data.hash_byUser = 
+			data.hash_byUser =
 				crypto.createHash('sha256')
 					.update(data.byUser.toString())
 					.digest('hex');
-		delete data.hash_byUser;
+		delete data.byUser;
 	}
 }
 
