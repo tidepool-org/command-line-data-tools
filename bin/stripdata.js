@@ -80,6 +80,10 @@ function performDataStripping(callback) {
 
 			var cleanData = chunk;
 
+			stripBasalSuppressedInfo(cleanData);
+
+			removeAnnotations(cleanData);
+
 			removeIDsAndPayload(cleanData);
 
 			stripModelAndSNForData(cleanData);
@@ -133,8 +137,18 @@ function removeIDsAndPayload(data) {
 			delete data.guid;
 		if (data.bolus)
 			delete data.bolus;
+	}
+}
+
+function removeAnnotations(data) {
+	if (data.annotations)
+		delete data.annotations;
+}
+
+function stripBasalSuppressedInfo(data) {
+	if (program.stripAll) {
 		if (data.suppressed)
-			delete data.suppressed;
+			delete data.suppressed.deviceId;
 	}
 }
 
