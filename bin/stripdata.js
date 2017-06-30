@@ -135,7 +135,7 @@ function removeIDsAndPayload(data) {
 			delete data.id;
 		if (data.guid)
 			delete data.guid;
-		if (data.bolus)
+		if (data.type == 'wizard')
 			delete data.bolus;
 	}
 }
