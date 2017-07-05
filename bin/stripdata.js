@@ -149,6 +149,7 @@ function stripBasalSuppressedInfo(data) {
 	if (program.stripAll) {
 		if (data.suppressed) {
 			data.suppressed.deviceId = data.type + ' device-Serial Number';
+			delete data.suppressed.source;
 		}
 	}
 }
