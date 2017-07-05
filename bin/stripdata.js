@@ -148,12 +148,7 @@ function removeAnnotations(data) {
 function stripBasalSuppressedInfo(data) {
 	if (program.stripAll) {
 		if (data.suppressed) {
-			var deviceId = splitDeviceId(data.suppressed.deviceId);
-			var deviceComp = deviceId[0];
-			deviceId[0]=data.type + ' device';
-			data.suppressed.deviceId = deviceId.join('-');
-			if (data.deviceSerialNumber)
-				data.suppressed.deviceSerialNumber = 'Serial Number';
+			data.suppressed.deviceId = data.type + ' device-Serial Number';
 		}
 	}
 }
