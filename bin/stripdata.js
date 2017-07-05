@@ -135,7 +135,7 @@ function removeIDsAndPayload(data) {
 			delete data.id;
 		if (data.guid)
 			delete data.guid;
-		if (data.type == 'wizard')
+		if ((data.type == 'wizard') && data.bolus)
 			delete data.bolus;
 	}
 }
@@ -147,8 +147,14 @@ function removeAnnotations(data) {
 
 function stripBasalSuppressedInfo(data) {
 	if (program.stripAll) {
-		if (data.suppressed)
-			delete data.suppressed.deviceId;
+		if (data.suppressed) {
+			var deviceId = splitDeviceId(data.suppressed.deviceId);
+			var deviceComp = deviceId[0];
+			deviceId[0]=data.type + ' device';
+			data.suppressed.deviceId = deviceId.join('-');
+			if (data.deviceSerialNumber)
+				data.suppressed.deviceSerialNumber = 'Serial Number';
+		}
 	}
 }
 
