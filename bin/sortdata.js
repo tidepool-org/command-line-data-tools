@@ -3,6 +3,7 @@
 var program = require('commander');
 var fs = require('fs');
 var chalk = require('chalk');
+var path = require('path');
 
 program
 	.version('0.0.1')
@@ -22,7 +23,7 @@ function sortData(input, output, callback) {
 	if (program.verbose)
 		console.log(chalk.yellow.bold('Reading in data...'));
 
-	var data = require(input);
+	var data = require(path.resolve(process.cwd(), input));
 
 	if (program.verbose)
 		console.log(chalk.yellow.bold('Sorting data...'));
