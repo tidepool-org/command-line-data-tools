@@ -6,6 +6,7 @@ var JSONStream = require('JSONStream');
 var fs = require('fs');
 var chalk = require('chalk');
 var ss = require('simple-statistics');
+var path = require('path');
 
 const MAX_EGV_PER_DAY = 288;
 const DAY_IN_MILLI = 86400000;
@@ -30,7 +31,7 @@ function performDataScoring(scoresheet, input, output, callback) {
 		console.log(chalk.yellow.bold('\nReading input...'));
 	}
 
-	var data = require(input);
+	var data = require(path.resolve(process.cwd(), input));
 
 	if (data.length === 0) {
 		console.error(chalk.red.bold(

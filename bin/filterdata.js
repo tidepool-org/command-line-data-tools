@@ -4,6 +4,7 @@ var program = require('commander');
 var fs = require('fs');
 var chalk = require('chalk');
 var JSONStream = require('JSONStream');
+var path = require('path');
 
 const DAY_IN_MILLI = 86400000;
 
@@ -54,7 +55,7 @@ function performDataFiltering(callback) {
 
 	if (program.input === 'test/test-filterdata.js')
 		return;
-	var data = require(program.input);
+	var data = require(path.resolve(process.cwd(), program.input));
 
 	var ofs = makeOutstream();
 
