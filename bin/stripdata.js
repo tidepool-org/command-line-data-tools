@@ -165,9 +165,8 @@ function stripModelAndSNForData(data) {
 			.indexOf(deviceComp) >= 0)
 		&& program.leaveModels
 			.indexOf(deviceComp) < 0) {
-		if (data.type !== 'upload') {
-			deviceId[0]=data.type + ' device';
-		} else {
+		deviceId[0]=data.type + ' device';
+		if (data.type === 'upload') {
 			// This probably isn't the best way to
 			// go about scrubbing an upload but I
 			// can't discern a better way to go
