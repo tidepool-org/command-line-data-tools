@@ -147,10 +147,16 @@ function removeAnnotations(data) {
 
 function stripBasalSuppressedInfo(data) {
 	if (program.stripAll) {
-		if (data.suppressed) {
-			data.suppressed.deviceId = data.type + ' device-Serial Number';
-			delete data.suppressed.source;
-			delete data.suppressed.payload;
+
+		dataToStrip = data;
+
+		while (dataToStrip.suppressed) {
+			dataToStrip.suppressed.deviceId = data.type + ' device-Serial Number';
+			delete dataToStrip.suppressed.source;
+			delete dataToStrip.suppressed.payload;
+			delete dataToStrip.suppressed.annotations;
+
+			dataToStrip = dataToStrip.suppressed;
 		}
 	}
 }
