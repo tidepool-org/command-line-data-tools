@@ -36,7 +36,7 @@ if (require.main === module) {
 		if (program.verbose)
 			console.log(chalk.yellow.bold('Writing data...'));
 
-		var outfileStream = makeOutfileStream(output);
+		var outfileStream = makeOutfileStream(program.output);
 		writeToOutfileStream(program.output, outfileStream, JSON.stringify(data));
 
 		if (program.verbose)

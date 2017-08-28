@@ -5,15 +5,33 @@ var crypto = require('crypto');
 exports.program = program;
 exports.performDataStripping = performDataStripping;
 exports.printOptions = printOptions;
-//exports.splitDeviceId = splitDeviceId;
+exports.splitDeviceId = splitDeviceId;
 exports.hashIDsForData = hashIDsForData;
 exports.removeSourceForData = removeSourceForData;
 exports.removeTransmitterIdForData = removeTransmitterIdForData;
 exports.removeIDsAndPayload = removeIDsAndPayload;
 exports.removeAnnotations = removeAnnotations;
-//exports.stripBasalSuppressedInfo = stripBasalSuppressedInfo;
+exports.stripBasalSuppressedInfo = stripBasalSuppressedInfo;
 exports.stripModelAndSNForData = stripModelAndSNForData;
 exports.stripData = stripData;
+
+function stripData(data) {
+
+	stripBasalSuppressedInfo(data);
+
+	removeAnnotations(data);
+
+	removeIDsAndPayload(data);
+
+	stripModelAndSNForData(data);
+
+	hashIDsForData(data);
+
+	removeSourceForData(data);
+
+	removeTransmitterIdForData(data);
+
+}
 
 function removeSourceForData(data) {
 	delete data.source;
@@ -61,7 +79,7 @@ function removeAnnotations(data) {
 		delete data.annotations;
 }
 
-/*function stripBasalSuppressedInfo(data) {
+function stripBasalSuppressedInfo(data) {
 
 		dataToStrip = data;
 
@@ -73,14 +91,18 @@ function removeAnnotations(data) {
 
 			dataToStrip = dataToStrip.suppressed;
 	}
-}*/
+}
 
 function stripModelAndSNForData(data) {
-
 	var deviceId = splitDeviceId(data.deviceId);
 	var deviceComp = deviceId[0];
 
-	deviceComp=data.type + ' device';
+	deviceId[0] = data.type + ' device';
+	deviceId[1] = 'Serial Number';
+
+	data.deviceId = deviceId.join('-');
+	//data.deviceId = data.type + 'device-Serial Number';
+
 	if (data.type === 'upload') {
 		// This probably isn't the best way to
 		// go about scrubbing an upload but I
@@ -95,10 +117,6 @@ function stripModelAndSNForData(data) {
 		if (data.deviceSerialNumber)
 			data.deviceSerialNumber = 'Serial Number';
 	}
-
-	deviceId[1]='Serial Number';
-
-	data.deviceId = deviceId.join('-');
 }
 
 function hashIDsForData(data) {
@@ -120,25 +138,6 @@ function hashIDsForData(data) {
 					.update(data.byUser.toString())
 					.digest('hex');
 		delete data.byUser;
-}
-
-function stripData(callback) {
-
-	stripBasalSuppressedInfo(data);
-
-	removeAnnotations(data);
-
-	removeIDsAndPayload(data);
-
-	stripModelAndSNForData(data);
-
-	hashIDsForData(data);
-
-	removeSourceForData(data);
-
-	removeTransmitterIdForData(data);
-
-	callback();
 }
 
 if (require.main === module) {
@@ -216,19 +215,7 @@ if (require.main === module) {
 
 				var cleanData = chunk;
 
-				stripBasalSuppressedInfo(cleanData);
-
-				removeAnnotations(cleanData);
-
-				removeIDsAndPayload(cleanData);
-
-				stripModelAndSNForData(cleanData);
-
-				hashIDsForData(cleanData);
-
-				removeSourceForData(cleanData);
-
-				removeTransmitterIdForData(cleanData);
+				stripData(cleanData);
 
 				writeToOutstream(ofs, JSON.stringify(cleanData));
 			})
