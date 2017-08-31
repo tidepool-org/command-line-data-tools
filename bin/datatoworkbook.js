@@ -7,11 +7,10 @@ exports.webServerWorkbook = webServerWorkbook;
 var Excel = require('exceljs');
 const COL_HEADERS = require('./excel-col-headers.js').COL_HEADERS;
 const BG_CONVERSION = 18.01559;
-const tempy = require('tempy');
 
-function dataToWorkbook(diaEvents, filepath) {
+function dataToWorkbook(diaEvents, stream) {
 
-	var wb = webServerWorkbook(filepath);
+	var wb = new Excel.Workbook();
 
 	var indexes = {};
 
@@ -104,9 +103,8 @@ function dataToWorkbook(diaEvents, filepath) {
 		processDiaEvent(wb, indexes, diaEvent);
 	}
 
-	wb.commit();
-
-	return wb;
+	// Return a Promise to the file write
+	return wb.xlsx.write(stream);
 }
 
 
