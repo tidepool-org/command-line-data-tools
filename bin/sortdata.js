@@ -1,72 +1,69 @@
 #!/usr/bin/env node --harmony
 
-exports.sortData = sortData;
+/* eslint-disable no-console */
 
-function sortData(data) {
-	data.sort(function(a, b) {
-		return new Date(b.time).getTime() - new Date(a.time).getTime();
-	});
+const sortData = require('../lib').sortData;
+
+const program = require('commander');
+const fs = require('fs');
+const chalk = require('chalk');
+const path = require('path');
+
+function printOptions() {
+  console.log(chalk.blue.bold('input: ') + program.input);
+  console.log(chalk.blue.bold('output: ') + program.output);
+  console.log(chalk.blue.bold('verbose: ') + program.verbose);
 }
 
-if (require.main === module) {
-	var program = require('commander');
-	var fs = require('fs');
-	var chalk = require('chalk');
-	var path = require('path');
+function makeOutfileStream(output) {
+  let ofs;
+  if (output) {
+    ofs = fs.createWriteStream(output);
+  } else {
+    ofs = process.stdout;
+  }
+  return ofs;
+}
 
-	program
-		.version('0.0.1')
-		.option('-i, --input <input>', 'path/to/input.json')
-		.option('-o, --output <output>', 'path/to/output.json')
-		.option('-v, --verbose', 'Verbose output.')
-		.parse(process.argv);
+function writeToOutfileStream(output, outfileStream, info) {
+  if (output) {
+    outfileStream.write(info);
+  } else {
+    console.log(info);
+  }
+}
 
-		if (program.verbose)
-			printOptions();
+program
+  .version('0.0.1')
+  .option('-i, --input <input>', 'path/to/input.json')
+  .option('-o, --output <output>', 'path/to/output.json')
+  .option('-v, --verbose', 'Verbose output.')
+  .parse(process.argv);
 
-		if (program.verbose)
-			console.log(chalk.yellow.bold('Reading in data...'));
-		var data = require(path.resolve(process.cwd(), program.input));
+if (program.verbose) {
+  printOptions();
+}
 
-		if (program.verbose)
-			console.log(chalk.yellow.bold('Sorting data...'));
+if (program.verbose) {
+  console.log(chalk.yellow.bold('Reading in data...'));
+}
 
-		sortData(data);
+// eslint-disable-next-line import/no-dynamic-require
+const data = require(path.resolve(process.cwd(), program.input));
 
-		if (program.verbose)
-			console.log(chalk.yellow.bold('Writing data...'));
+if (program.verbose) {
+  console.log(chalk.yellow.bold('Sorting data...'));
+}
 
-		var outfileStream = makeOutfileStream(program.output);
-		writeToOutfileStream(program.output, outfileStream, JSON.stringify(data));
+sortData(data);
 
-		if (program.verbose)
-			console.log(chalk.yellow.bold('Done sorting and writing data...'));
+if (program.verbose) {
+  console.log(chalk.yellow.bold('Writing data...'));
+}
 
-/*sortData(program.input, program.output, function() {
-	process.exit(0);
-});*/
+const outfileStream = makeOutfileStream(program.output);
+writeToOutfileStream(program.output, outfileStream, JSON.stringify(data));
 
-	function printOptions() {
-		console.log(chalk.blue.bold('input: ') + program.input);
-		console.log(chalk.blue.bold('output: ') + program.output);
-		console.log(chalk.blue.bold('verbose: ') + program.verbose);
-	}
-
-	function makeOutfileStream(output) {
-		var ofs;
-		if (output) {
-			ofs = fs.createWriteStream(output);
-		} else {
-			ofs = process.stdout;
-		}
-		return ofs;
-	}
-
-	function writeToOutfileStream(output, outfileStream, info) {
-		if (output) {
-			outfileStream.write(info);
-		} else {
-			console.log(info);
-		}
-	}
+if (program.verbose) {
+  console.log(chalk.yellow.bold('Done sorting and writing data...'));
 }
