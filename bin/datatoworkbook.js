@@ -719,15 +719,17 @@ function processBloodKetoneEvent(index, bloodKetone) {
 function processWizardEvent(index, wizard) {
 		wizard.units = 'mg/dL';
 		if (wizard.bgInput)
-			wizard.bgInput *= BG_CONVERSION;
-		if (wizard.bgTarget.target)
-			wizard.bgTarget.target *= BG_CONVERSION;
-		if (wizard.bgTarget.low)
-			wizard.bgTarget.low *= BG_CONVERSION;
-		if (wizard.bgTarget.high)
-			wizard.bgTarget.high *= BG_CONVERSION;
-		if (wizard.bgTarget.range)
-			wizard.bgTarget.range *= BG_CONVERSION;
+      wizard.bgInput *= BG_CONVERSION;
+    if(wizard.bgTarget){
+		  if (wizard.bgTarget.target)
+			  wizard.bgTarget.target *= BG_CONVERSION;
+		  if (wizard.bgTarget.low)
+			  wizard.bgTarget.low *= BG_CONVERSION;
+		  if (wizard.bgTarget.high)
+			  wizard.bgTarget.high *= BG_CONVERSION;
+		  if (wizard.bgTarget.range)
+			  wizard.bgTarget.range *= BG_CONVERSION;
+    }
 		wizard.insulinSensitivity *= BG_CONVERSION;
 
 	var localTime = new Date(wizard.time);
@@ -738,10 +740,10 @@ function processWizardEvent(index, wizard) {
 		index: index,
 		units: wizard.units,
 		bgInput: wizard.bgInput,
-		bgTarget: wizard.bgTarget.target,
-		bgTargetLow: wizard.bgTarget.low,
-		bgTargetHigh: wizard.bgTarget.high,
-		bgTargetRange: wizard.bgTarget.range,
+		bgTarget: wizard.bgTarget ? wizard.bgTarget.target : null,
+		bgTargetLow: wizard.bgTarget ? wizard.bgTarget.low : null,
+		bgTargetHigh: wizard.bgTarget ? wizard.bgTarget.high : null,
+		bgTargetRange: wizard.bgTarget ? wizard.bgTarget.range : null,
 		bolus: wizard.bolus,
 		carbInput: wizard.carbInput,
 		insulinCarbRatio: wizard.insulinCarbRatio,
