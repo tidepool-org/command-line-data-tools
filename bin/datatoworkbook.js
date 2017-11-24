@@ -213,7 +213,8 @@ function processBasalSchedules(sheet, indexes, pumpSettings) {
   const group = indexes.basalSchedule.group;
 
   const basalSchedules = pumpSettings.basalSchedules;
-  for (const basalSchedule of basalSchedules) {
+
+  for (const basalScheduleName of Object.keys(basalSchedules)) {
     let sequence = 1;
 
     const localTime = new Date(pumpSettings.time);
@@ -224,16 +225,16 @@ function processBasalSchedules(sheet, indexes, pumpSettings) {
     // If there are no values for a particular schedule
     // (i.e. "pattern a":[]) then there will be no rows
     // representing that particular schedule in the output
-    for (const i of basalSchedules[basalSchedule]) {
+    for (const basalSchedule of basalSchedules[basalScheduleName]) {
       const basalScheduleRow = {
         index: indexes.basalSchedule.index += 1,
         group,
         sequence,
         activeSchedule: pumpSettings.activeSchedule,
-        scheduleName: basalSchedule,
+        scheduleName: basalScheduleName,
         units: 'units/hour',
-        rate: basalSchedules[basalSchedule][i].rate,
-        start: basalSchedules[basalSchedule][i].start,
+        rate: basalSchedule.rate,
+        start: basalSchedule.start,
         source: pumpSettings.source,
         deviceTime: new Date(pumpSettings.deviceTime),
         localTime,
@@ -258,18 +259,18 @@ function processBasalSchedules(sheet, indexes, pumpSettings) {
   }
 }
 
-function processBgTarget(sheet, bgTarget, pumpSettings, indexes, activeSchedule, scheduleName) {
+function processBgTarget(sheet, bgTargets, pumpSettings, indexes, activeSchedule, scheduleName) {
   let sequence = 1;
-  for (const i of bgTarget) {
+  for (const bgTarget of bgTargets) {
     const units = 'mg/dL';
-    if (bgTarget[i].high) {
-      bgTarget[i].high *= BG_CONVERSION;
+    if (bgTarget.high) {
+      bgTarget.high *= BG_CONVERSION;
     }
-    if (bgTarget[i].low) {
-      bgTarget[i].low *= BG_CONVERSION;
+    if (bgTarget.low) {
+      bgTarget.low *= BG_CONVERSION;
     }
-    if (bgTarget[i].target) {
-      bgTarget[i].target *= BG_CONVERSION;
+    if (bgTarget.target) {
+      bgTarget.target *= BG_CONVERSION;
     }
 
 
@@ -284,10 +285,10 @@ function processBgTarget(sheet, bgTarget, pumpSettings, indexes, activeSchedule,
       scheduleName,
       sequence,
       units,
-      high: bgTarget[i].high,
-      low: bgTarget[i].low,
-      target: bgTarget[i].target,
-      start: bgTarget[i].start,
+      high: bgTarget.high,
+      low: bgTarget.low,
+      target: bgTarget.target,
+      start: bgTarget.start,
       source: pumpSettings.source,
       deviceTime: new Date(pumpSettings.deviceTime),
       localTime,
@@ -320,21 +321,21 @@ function processBgTargets(sheet, indexes, pumpSettings) {
       null,
       null);
   } else if (pumpSettings.bgTargets) {
-    for (const i of pumpSettings.bgTargets) {
+    for (const bgTargetName of Object.keys(pumpSettings.bgTargets)) {
       processBgTarget(sheet,
-        pumpSettings.bgTargets[i],
+        pumpSettings.bgTargets[bgTargetName],
         pumpSettings,
         indexes,
         pumpSettings.activeSchedule,
-        i);
+        bgTargetName);
     }
   }
   indexes.bgTarget.group += 1;
 }
 
-function processCarbRatio(sheet, carbRatio, pumpSettings, indexes, activeSchedule, scheduleName) {
+function processCarbRatio(sheet, carbRatios, pumpSettings, indexes, activeSchedule, scheduleName) {
   let sequence = 1;
-  for (const i of carbRatio) {
+  for (const carbRatio of carbRatios) {
     const localTime = new Date(pumpSettings.time);
     localTime.setUTCMinutes(
       localTime.getUTCMinutes() + pumpSettings.timezoneOffset);
@@ -346,8 +347,8 @@ function processCarbRatio(sheet, carbRatio, pumpSettings, indexes, activeSchedul
       scheduleName,
       sequence,
       units: 'grams/unit',
-      amount: carbRatio[i].amount,
-      start: carbRatio[i].start,
+      amount: carbRatio.amount,
+      start: carbRatio.start,
       source: pumpSettings.source,
       deviceTime: pumpSettings.deviceTime,
       localTime,
@@ -380,24 +381,24 @@ function processCarbRatios(sheet, indexes, pumpSettings) {
       null,
       null);
   } else if (pumpSettings.carbRatios) {
-    for (const i of pumpSettings.carbRatios) {
+    for (const carbRatioName of Object.keys(pumpSettings.carbRatios)) {
       processCarbRatio(sheet,
-        pumpSettings.carbRatios[i],
+        pumpSettings.carbRatios[carbRatioName],
         pumpSettings,
         indexes,
         pumpSettings.activeSchedule,
-        i);
+        carbRatioName);
     }
   }
   indexes.carbRatio.group += 1;
 }
 
-function processInsulinSensitivity(sheet, insulinSensitivity, pumpSettings,
+function processInsulinSensitivity(sheet, insulinSensitivities, pumpSettings,
   indexes, activeSchedule, scheduleName) {
   let sequence = 1;
-  for (const i of insulinSensitivity) {
+  for (const insulinSensitivity of insulinSensitivities) {
     const units = 'mg/dL/unit';
-    insulinSensitivity[i].amount *= BG_CONVERSION;
+    insulinSensitivity.amount *= BG_CONVERSION;
 
     const localTime = new Date(pumpSettings.time);
     localTime.setUTCMinutes(
@@ -410,8 +411,8 @@ function processInsulinSensitivity(sheet, insulinSensitivity, pumpSettings,
       scheduleName,
       sequence,
       units,
-      amount: insulinSensitivity[i].amount,
-      start: insulinSensitivity[i].start,
+      amount: insulinSensitivity.amount,
+      start: insulinSensitivity.start,
       source: pumpSettings.source,
       deviceTime: new Date(pumpSettings.deviceTime),
       localTime,
@@ -444,13 +445,13 @@ function processInsulinSensitivities(sheet, indexes, pumpSettings) {
       null,
       null);
   } else if (pumpSettings.insulinSensitivities) {
-    for (const i of pumpSettings.insulinSensitivities) {
+    for (const insulinSensitivityName of pumpSettings.insulinSensitivities) {
       processInsulinSensitivity(sheet,
-        pumpSettings.insulinSensitivities[i],
+        pumpSettings.insulinSensitivities[insulinSensitivityName],
         pumpSettings,
         indexes,
         pumpSettings.activeSchedule,
-        i);
+        insulinSensitivityName);
     }
   }
   indexes.insulinSensitivity.group += 1;
@@ -516,17 +517,19 @@ function processWizardEvent(index, wizard) {
   if (wizard.bgInput) {
     wizard.bgInput *= BG_CONVERSION;
   }
-  if (wizard.bgTarget.target) {
-    wizard.bgTarget.target *= BG_CONVERSION;
-  }
-  if (wizard.bgTarget.low) {
-    wizard.bgTarget.low *= BG_CONVERSION;
-  }
-  if (wizard.bgTarget.high) {
-    wizard.bgTarget.high *= BG_CONVERSION;
-  }
-  if (wizard.bgTarget.range) {
-    wizard.bgTarget.range *= BG_CONVERSION;
+  if (wizard.bgTarget) {
+    if (wizard.bgTarget.target) {
+      wizard.bgTarget.target *= BG_CONVERSION;
+    }
+    if (wizard.bgTarget.low) {
+      wizard.bgTarget.low *= BG_CONVERSION;
+    }
+    if (wizard.bgTarget.high) {
+      wizard.bgTarget.high *= BG_CONVERSION;
+    }
+    if (wizard.bgTarget.range) {
+      wizard.bgTarget.range *= BG_CONVERSION;
+    }
   }
   wizard.insulinSensitivity *= BG_CONVERSION;
 
@@ -538,10 +541,10 @@ function processWizardEvent(index, wizard) {
     index,
     units: wizard.units,
     bgInput: wizard.bgInput,
-    bgTarget: wizard.bgTarget.target,
-    bgTargetLow: wizard.bgTarget.low,
-    bgTargetHigh: wizard.bgTarget.high,
-    bgTargetRange: wizard.bgTarget.range,
+    bgTarget: wizard.bgTarget ? wizard.bgTarget.target : null,
+    bgTargetLow: wizard.bgTarget ? wizard.bgTarget.low : null,
+    bgTargetHigh: wizard.bgTarget ? wizard.bgTarget.high : null,
+    bgTargetRange: wizard.bgTarget ? wizard.bgTarget.range : null,
     bolus: wizard.bolus,
     carbInput: wizard.carbInput,
     insulinCarbRatio: wizard.insulinCarbRatio,
@@ -577,7 +580,7 @@ function processUploadEvent(sheet, indexes, upload) {
 
   let uploadRow = null;
   if (upload.deviceModel === 'multiple') {
-    for (const i of upload.payload.devices) {
+    for (const device of upload.payload.devices) {
       const localTime = new Date(upload.time);
       if (upload.timezoneOffset) {
         localTime.setUTCMinutes(
@@ -592,8 +595,8 @@ function processUploadEvent(sheet, indexes, upload) {
         deviceManufacturer: (upload.deviceManufacturers &&
             upload.deviceManufacturers.length > 0) ?
           upload.deviceManufacturers[0] : null,
-        deviceModel: upload.payload.devices[i].deviceModel,
-        deviceSerialNumber: upload.payload.devices[i].deviceSerialNumber,
+        deviceModel: device.deviceModel,
+        deviceSerialNumber: device.deviceSerialNumber,
         deviceTag: (upload.deviceTags &&
             upload.deviceTags.length > 0) ?
           upload.deviceTags[0] : null,
