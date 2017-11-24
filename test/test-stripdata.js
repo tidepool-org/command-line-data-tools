@@ -326,15 +326,15 @@ describe('stripdata', () => {
 
         const inputData = readInputTestFile();
         const outputData = readOutputTestFile();
-        for (const i of outputData) {
-          const expectGroup = inputData[i]._groupId;
-          const expectUpload = inputData[i].uploadId;
-          should.not.exist(outputData[i]._groupId);
-          should.exist(outputData[i].hash_groupId);
-          outputData[i].hash_groupId.should.not.equal(expectGroup);
-          should.not.exist(outputData[i].uploadId);
-          should.exist(outputData[i].hash_uploadId);
-          outputData[i].hash_uploadId.should.not.equal(expectUpload);
+        for (const [index, outputDatum] of outputData.entries()) {
+          const expectGroup = inputData[index]._groupId;
+          const expectUpload = inputData[index].uploadId;
+          should.not.exist(outputDatum._groupId);
+          should.exist(outputDatum.hash_groupId);
+          outputDatum.hash_groupId.should.not.equal(expectGroup);
+          should.not.exist(outputDatum.uploadId);
+          should.exist(outputDatum.hash_uploadId);
+          outputDatum.hash_uploadId.should.not.equal(expectUpload);
         }
 
         deleteFilesCreated();
@@ -353,15 +353,15 @@ describe('stripdata', () => {
 
         const inputData = readInputTestFile();
         const outputData = readOutputTestFile();
-        for (const i of outputData) {
-          const expectGroup = inputData[i]._groupId;
-          const expectUpload = inputData[i].uploadId;
-          should.exist(outputData[i]._groupId);
-          should.not.exist(outputData[i].hash_groupId);
-          outputData[i]._groupId.should.equal(expectGroup);
-          should.exist(outputData[i].uploadId);
-          should.not.exist(outputData[i].hash_uploadId);
-          outputData[i].uploadId.should.equal(expectUpload);
+        for (const [index, outputDatum] of outputData.entries()) {
+          const expectGroup = inputData[index]._groupId;
+          const expectUpload = inputData[index].uploadId;
+          should.exist(outputDatum._groupId);
+          should.not.exist(outputDatum.hash_groupId);
+          outputDatum._groupId.should.equal(expectGroup);
+          should.exist(outputDatum.uploadId);
+          should.not.exist(outputDatum.hash_uploadId);
+          outputDatum.uploadId.should.equal(expectUpload);
         }
 
         deleteFilesCreated();
@@ -380,8 +380,8 @@ describe('stripdata', () => {
         code.should.deep.equal(0);
 
         const outputData = readOutputTestFile();
-        for (const i of outputData) {
-          should.not.exist(outputData[i].source);
+        for (const outputDatum of outputData) {
+          should.not.exist(outputDatum.source);
         }
 
         deleteFilesCreated();
@@ -399,8 +399,8 @@ describe('stripdata', () => {
         code.should.deep.equal(0);
 
         const outputData = readOutputTestFile();
-        for (const i of outputData) {
-          should.exist(outputData[i].source);
+        for (const outputDatum of outputData) {
+          should.exist(outputDatum.source);
         }
 
         deleteFilesCreated();
