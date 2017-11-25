@@ -169,7 +169,7 @@ function addBasalRow(sheet, basal, indexes, suppressed) {
     localTime.getUTCMinutes() + basal.timezoneOffset);
 
   const basalRow = {
-    index: indexes.basal.index += 1,
+    index: indexes.basal.index,
     group: indexes.basal.group,
     suppressed,
     deliveryType: basal.deliveryType,
@@ -197,6 +197,7 @@ function addBasalRow(sheet, basal, indexes, suppressed) {
     uploadId: basal.uploadId,
     _groupId: basal._groupId,
   };
+  indexes.basal.index += 1;
 
   sheet.addRow(basalRow).commit();
 
@@ -208,9 +209,8 @@ function processBasalEvent(sheet, indexes, basal) {
 }
 
 function processBasalSchedules(sheet, indexes, pumpSettings) {
-  // TODO: is this indended behaviour?
-  indexes.basalSchedule.group += 1;
   const group = indexes.basalSchedule.group;
+  indexes.basalSchedule.group += 1;
 
   const basalSchedules = pumpSettings.basalSchedules;
 
@@ -227,7 +227,7 @@ function processBasalSchedules(sheet, indexes, pumpSettings) {
     // representing that particular schedule in the output
     for (const basalSchedule of basalSchedules[basalScheduleName]) {
       const basalScheduleRow = {
-        index: indexes.basalSchedule.index += 1,
+        index: indexes.basalSchedule.index,
         group,
         sequence,
         activeSchedule: pumpSettings.activeSchedule,
@@ -253,6 +253,7 @@ function processBasalSchedules(sheet, indexes, pumpSettings) {
         uploadId: pumpSettings.uploadId,
         _groupId: pumpSettings._groupId,
       };
+      indexes.basalSchedule.index += 1;
       sheet.addRow(basalScheduleRow).commit();
       sequence += 1;
     }
@@ -279,7 +280,7 @@ function processBgTarget(sheet, bgTargets, pumpSettings, indexes, activeSchedule
       localTime.getUTCMinutes() + pumpSettings.timezoneOffset);
 
     const bgTargetRow = {
-      index: indexes.bgTarget.index += 1,
+      index: indexes.bgTarget.index,
       group: indexes.bgTarget.group,
       activeSchedule,
       scheduleName,
@@ -307,6 +308,7 @@ function processBgTarget(sheet, bgTargets, pumpSettings, indexes, activeSchedule
       uploadId: pumpSettings.uploadId,
       _groupId: pumpSettings._groupId,
     };
+    indexes.bgTarget.index += 1;
     sheet.addRow(bgTargetRow).commit();
     sequence += 1;
   }
@@ -341,7 +343,7 @@ function processCarbRatio(sheet, carbRatios, pumpSettings, indexes, activeSchedu
       localTime.getUTCMinutes() + pumpSettings.timezoneOffset);
 
     const carbRatioRow = {
-      index: indexes.carbRatio.index += 1,
+      index: indexes.carbRatio.index,
       group: indexes.carbRatio.group,
       activeSchedule,
       scheduleName,
@@ -367,6 +369,7 @@ function processCarbRatio(sheet, carbRatios, pumpSettings, indexes, activeSchedu
       uploadId: pumpSettings.uploadId,
       _groupId: pumpSettings._groupId,
     };
+    indexes.carbRatio.index += 1;
     sheet.addRow(carbRatioRow).commit();
     sequence += 1;
   }
@@ -405,7 +408,7 @@ function processInsulinSensitivity(sheet, insulinSensitivities, pumpSettings,
       localTime.getUTCMinutes() + pumpSettings.timezoneOffset);
 
     const insulinSensitivityRow = {
-      index: indexes.insulinSensitivity.index += 1,
+      index: indexes.insulinSensitivity.index,
       group: indexes.insulinSensitivity.group,
       activeSchedule,
       scheduleName,
@@ -431,6 +434,7 @@ function processInsulinSensitivity(sheet, insulinSensitivities, pumpSettings,
       uploadId: pumpSettings.uploadId,
       _groupId: pumpSettings._groupId,
     };
+    indexes.insulinSensitivity.index += 1;
     sheet.addRow(insulinSensitivityRow).commit();
     sequence += 1;
   }
@@ -549,7 +553,7 @@ function processWizardEvent(index, wizard) {
     carbInput: wizard.carbInput,
     insulinCarbRatio: wizard.insulinCarbRatio,
     insulinOnBoard: wizard.insulinOnBoard,
-    insulinSensitivity: wizard.insulinSensitivity,
+    insulinSensitivity: wizard.insulinSensitivity || null,
     recommendedCarb: wizard.recommended.carb,
     recommendedCorrection: wizard.recommended.correction,
     recommendedNet: wizard.recommended.net,
@@ -574,9 +578,8 @@ function processWizardEvent(index, wizard) {
 }
 
 function processUploadEvent(sheet, indexes, upload) {
-  // TODO: is this indended behaviour?
-  indexes.upload.group += 1;
   const group = indexes.upload.group;
+  indexes.upload.group += 1;
 
   let uploadRow = null;
   if (upload.deviceModel === 'multiple') {
@@ -588,7 +591,7 @@ function processUploadEvent(sheet, indexes, upload) {
       }
 
       uploadRow = {
-        index: indexes.upload.index += 1,
+        index: indexes.upload.index,
         group,
         byUser: upload.byUser,
         hash_byUser: upload.hash_byUser,
@@ -618,6 +621,7 @@ function processUploadEvent(sheet, indexes, upload) {
         uploadId: upload.uploadId,
         _groupId: upload._groupId,
       };
+      indexes.upload.index += 1;
 
       sheet.addRow(uploadRow).commit();
     }
@@ -629,7 +633,7 @@ function processUploadEvent(sheet, indexes, upload) {
     }
 
     uploadRow = {
-      index: indexes.upload.index += 1,
+      index: indexes.upload.index,
       group,
       byUser: upload.byUser,
       hash_byUser: upload.hash_byUser,
@@ -662,15 +666,15 @@ function processUploadEvent(sheet, indexes, upload) {
       uploadId: upload.uploadId,
       _groupId: upload._groupId,
     };
+    indexes.upload.index += 1;
 
     sheet.addRow(uploadRow).commit();
   }
 }
 
 function processDeviceEvent(sheet, indexes, deviceEvent) {
-  // TODO: is this indended behaviour?
-  indexes.deviceEvent.group += 1;
   const group = indexes.deviceEvent.group;
+  indexes.deviceEvent.group += 1;
 
   if (deviceEvent.subType === 'status') {
     const localTime = new Date(deviceEvent.time);
@@ -678,7 +682,7 @@ function processDeviceEvent(sheet, indexes, deviceEvent) {
       localTime.getUTCMinutes() + deviceEvent.timezoneOffset);
 
     const deviceEventRow = {
-      index: indexes.deviceEvent.index += 1,
+      index: indexes.deviceEvent.index,
       group,
       subType: deviceEvent.subType,
       status: deviceEvent.status,
@@ -704,6 +708,7 @@ function processDeviceEvent(sheet, indexes, deviceEvent) {
       uploadId: deviceEvent.uploadId,
       _groupId: deviceEvent._groupId,
     };
+    indexes.deviceEvent.index += 1;
 
     sheet.addRow(deviceEventRow).commit();
   } else {
@@ -717,7 +722,7 @@ function processDeviceEvent(sheet, indexes, deviceEvent) {
       localTime.getUTCMinutes() + deviceEvent.timezoneOffset);
 
     const deviceEventRow = {
-      index: indexes.deviceEvent.index += 1,
+      index: indexes.deviceEvent.index,
       group,
       subType: deviceEvent.subType,
       alarmType: deviceEvent.alarmType,
@@ -754,6 +759,7 @@ function processDeviceEvent(sheet, indexes, deviceEvent) {
       uploadId: deviceEvent.uploadId,
       _groupId: deviceEvent._groupId,
     };
+    indexes.deviceEvent.index += 1;
 
     let statusEventRow;
     if (typeof deviceEvent.status === 'string') {
@@ -802,17 +808,21 @@ function processDeviceEvent(sheet, indexes, deviceEvent) {
 function processDiaEvent(wb, indexes, diaEvent) {
   if (diaEvent.type === 'smbg') {
     const smbgSheet = wb.getWorksheet('smbg');
-    smbgSheet.addRow(processSmbgEvent(indexes.smbg.index += 1, diaEvent)).commit();
+    smbgSheet.addRow(processSmbgEvent(indexes.smbg.index, diaEvent)).commit();
+    indexes.smbg.index += 1;
   } else if (diaEvent.type === 'cbg') {
     const cbgSheet = wb.getWorksheet('cgm');
-    cbgSheet.addRow(processCbgEvent(indexes.cbg.index += 1, diaEvent)).commit();
+    cbgSheet.addRow(processCbgEvent(indexes.cbg.index, diaEvent)).commit();
+    indexes.cbg.index += 1;
   } else if (diaEvent.type === 'cgmSettings') {
     const cgmSettingsSheet = wb.getWorksheet('cgmSettings');
     cgmSettingsSheet.addRow(
-      processCgmSettingsEvent(indexes.cgmSettings.index += 1, diaEvent)).commit();
+      processCgmSettingsEvent(indexes.cgmSettings.index, diaEvent)).commit();
+    indexes.cgmSettings.index += 1;
   } else if (diaEvent.type === 'bolus') {
     const bolusSheet = wb.getWorksheet('bolus');
-    bolusSheet.addRow(processBolusEvent(indexes.bolus.index += 1, diaEvent)).commit();
+    bolusSheet.addRow(processBolusEvent(indexes.bolus.index, diaEvent)).commit();
+    indexes.bolus.index += 1;
   } else if (diaEvent.type === 'basal') {
     const basalSheet = wb.getWorksheet('basal');
     processBasalEvent(basalSheet, indexes, diaEvent);
@@ -821,10 +831,12 @@ function processDiaEvent(wb, indexes, diaEvent) {
   } else if (diaEvent.type === 'bloodKetone') {
     const bloodKetoneSheet = wb.getWorksheet('bloodKetone');
     bloodKetoneSheet.addRow(
-      processBloodKetoneEvent(indexes.bloodKetone.index += 1, diaEvent)).commit();
+      processBloodKetoneEvent(indexes.bloodKetone.index, diaEvent)).commit();
+    indexes.bloodKetone.index += 1;
   } else if (diaEvent.type === 'wizard') {
     const wizardSheet = wb.getWorksheet('wizard');
-    wizardSheet.addRow(processWizardEvent(indexes.wizard.index += 1, diaEvent)).commit();
+    wizardSheet.addRow(processWizardEvent(indexes.wizard.index, diaEvent)).commit();
+    indexes.wizard.index += 1;
   } else if (diaEvent.type === 'upload') {
     const uploadSheet = wb.getWorksheet('upload');
     processUploadEvent(uploadSheet, indexes, diaEvent);
@@ -966,22 +978,26 @@ if (require.main === module) {
       diaEvent.type === 'smbg') {
       const smbgSheet = wb.getWorksheet('smbg');
       smbgSheet.addRow(
-        processSmbgEvent(indexes.smbg.index += 1, diaEvent)).commit();
+        processSmbgEvent(indexes.smbg.index, diaEvent)).commit();
+      indexes.smbg.index += 1;
     } else if ((program.all || program.cbg) &&
       diaEvent.type === 'cbg') {
       const cbgSheet = wb.getWorksheet('cgm');
       cbgSheet.addRow(
-        processCbgEvent(indexes.cbg.index += 1, diaEvent)).commit();
+        processCbgEvent(indexes.cbg.index, diaEvent)).commit();
+      indexes.cbg.index += 1;
     } else if ((program.all || program.cgmSettings) &&
       diaEvent.type === 'cgmSettings') {
       const cgmSettingsSheet = wb.getWorksheet('cgmSettings');
       cgmSettingsSheet.addRow(
-        processCgmSettingsEvent(indexes.cgmSettings.index += 1, diaEvent)).commit();
+        processCgmSettingsEvent(indexes.cgmSettings.index, diaEvent)).commit();
+      indexes.cgmSettings.index += 1;
     } else if ((program.all || program.bolus) &&
       diaEvent.type === 'bolus') {
       const bolusSheet = wb.getWorksheet('bolus');
       bolusSheet.addRow(
-        processBolusEvent(indexes.bolus.index += 1, diaEvent)).commit();
+        processBolusEvent(indexes.bolus.index, diaEvent)).commit();
+      indexes.bolus.index += 1;
     } else if ((program.all || program.basal) &&
       diaEvent.type === 'basal') {
       const basalSheet = wb.getWorksheet('basal');
@@ -998,12 +1014,14 @@ if (require.main === module) {
       diaEvent.type === 'bloodKetone') {
       const bloodKetoneSheet = wb.getWorksheet('bloodKetone');
       bloodKetoneSheet.addRow(
-        processBloodKetoneEvent(indexes.bloodKetone.index += 1, diaEvent)).commit();
+        processBloodKetoneEvent(indexes.bloodKetone.index, diaEvent)).commit();
+      indexes.bloodKetone.index += 1;
     } else if ((program.all || program.wizard) &&
       diaEvent.type === 'wizard') {
       const wizardSheet = wb.getWorksheet('wizard');
       wizardSheet.addRow(
-        processWizardEvent(indexes.wizard.index += 1, diaEvent)).commit();
+        processWizardEvent(indexes.wizard.index, diaEvent)).commit();
+      indexes.wizard.index += 1;
     } else if ((program.all || program.upload) &&
       diaEvent.type === 'upload') {
       const uploadSheet = wb.getWorksheet('upload');
