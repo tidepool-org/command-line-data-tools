@@ -148,7 +148,7 @@ function performDataStripping(callback) {
 }
 
 program
-  .version('0.0.1')
+  .version('1.0.0')
   .option('-i, --input <input>', 'path/to/input.json')
   .option('-o, --output <output>', 'path/to/output.json')
   .option('--stripModels <stripModels>',

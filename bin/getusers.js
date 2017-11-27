@@ -59,7 +59,7 @@ function makeUserAccessRequest(userId, sessionToken, env) {
   };
 }
 program
-  .version('0.0.1')
+  .version('1.0.0')
   .arguments('<email>')
   .option('-p, --password <password>',
     'Password for authemail. Recommended flag for piping to another tool.')

@@ -1190,7 +1190,7 @@ if (require.main === module) {
   }
 
   program
-    .version('0.0.1')
+    .version('1.0.0')
     .arguments('<output>')
     .option('-i, --input <input>', 'path/to/input.json')
     .option('--mgdL', 'Convert all BG values to mg/dL.')

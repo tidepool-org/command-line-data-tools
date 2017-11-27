@@ -261,7 +261,7 @@ function performDataScoring(scoresheet, input, output, callback) {
 }
 
 program
-  .version('0.0.1')
+  .version('1.0.0')
   .arguments('<scoresheet>')
   .option('-i, --input <input>', 'path/to/input.json')
   .option('-o, --output <output>', 'path/to/output.json')

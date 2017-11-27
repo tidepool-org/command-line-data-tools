@@ -2,7 +2,7 @@
 
 /* eslint-disable no-console */
 
-const sortData = require('../lib').sortData;
+const sortDataByDate = require('../lib').sortDataByDate;
 
 const program = require('commander');
 const fs = require('fs');
@@ -34,7 +34,7 @@ function writeToOutfileStream(output, outfileStream, info) {
 }
 
 program
-  .version('0.0.1')
+  .version('1.0.0')
   .option('-i, --input <input>', 'path/to/input.json')
   .option('-o, --output <output>', 'path/to/output.json')
   .option('-v, --verbose', 'Verbose output.')
@@ -55,7 +55,7 @@ if (program.verbose) {
   console.log(chalk.yellow.bold('Sorting data...'));
 }
 
-sortData(data);
+sortDataByDate(data);
 
 if (program.verbose) {
   console.log(chalk.yellow.bold('Writing data...'));

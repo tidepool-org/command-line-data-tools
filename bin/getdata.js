@@ -4,8 +4,8 @@
 
 const program = require('commander');
 const prompt = require('prompt-sync')();
-const rp = require('request-promise-native');
-// Used because use of .pipe() with rp is discouraged
+const requestPromise = require('request-promise-native');
+// Used because use of .pipe() with requestPromise is discouraged
 const request = require('request');
 const fs = require('fs');
 const chalk = require('chalk');
@@ -31,7 +31,6 @@ function getEnvironment() {
   if (program.dev) return 'dev-';
   if (program.stg) return 'stg-';
   if (program.int) return 'int-';
-  if (program.clinic) return 'dev-clinic-';
   return '';
 }
 
@@ -49,7 +48,7 @@ function makeDataQueryRequest(id, sessionToken, env) {
   };
 }
 program
-  .version('0.0.1')
+  .version('1.0.0')
   .arguments('<authemail> <id>')
   .option('-p, --password <password>',
     'Password for authemail. Recommended flag for piping to another tool.')
@@ -57,7 +56,6 @@ program
   .option('--dev', 'Use development server. Default server is production.')
   .option('--stg', 'Use staging server. Default server is production.')
   .option('--int', 'Use integration server. Default server is production.')
-  .option('--clinic', 'Use clinic server. Default server is production.')
   .option('-v, --verbose', 'Verbose output.')
   .action((authemail, id) => {
     let password;
@@ -76,7 +74,7 @@ program
       resolveWithFullResponse: true,
     };
 
-    rp.post(req)
+    requestPromise.post(req)
       .then((response) => {
         if (program.verbose) {
           console.log(chalk.green.bold('Successful login.'));

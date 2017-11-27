@@ -1,8 +1,12 @@
 {
   "name": "tidepool-data-tools",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "A toolkit for parsing Tidepool data, including command line utilities.",
   "main": "lib.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tidepool-org/command-line-data-tools.git"
+  },
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha test/test-stripdata.js test/test-filterdata.js",
     "lint": "eslint --cache --format=node_modules/eslint-formatter-pretty .",

@@ -3,7 +3,7 @@
 const crypto = require('crypto');
 
 /* Sort Data */
-function sortData(data) {
+function sortDataByDate(data) {
   data.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
 }
 /* End Sort Data */
@@ -191,7 +191,7 @@ function stripData(data) {
 
 /* End Strip Data */
 
-exports.sortData = sortData;
+exports.sortDataByDate = sortDataByDate;
 exports.stripData = stripData;
 exports.splitDeviceId = splitDeviceId;
 exports.hashIDsForData = hashIDsForData;

@@ -226,7 +226,7 @@ exports.getLength = getLength;
 exports.getFirstIndexOfType = getFirstIndexOfType;
 
 program
-  .version('0.0.1')
+  .version('1.0.0')
   .arguments('<type> <input>')
   .option('-o, --output <output>', 'path/to/output.json')
   .option('--length <length>',
