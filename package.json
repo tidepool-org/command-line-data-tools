@@ -12,6 +12,7 @@
     "lint": "eslint --cache --format=node_modules/eslint-formatter-pretty .",
     "lint-fix": "npm run lint -- --fix"
   },
+  "license": "BSD-2-Clause",
   "bin": {
     "getdata": "./bin/getdata.js",
     "getusers": "./bin/getusers.js",
