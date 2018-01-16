@@ -449,7 +449,7 @@ function processInsulinSensitivities(sheet, indexes, pumpSettings) {
       null,
       null);
   } else if (pumpSettings.insulinSensitivities) {
-    for (const insulinSensitivityName of pumpSettings.insulinSensitivities) {
+    for (const insulinSensitivityName of Object.keys(pumpSettings.insulinSensitivities)) {
       processInsulinSensitivity(sheet,
         pumpSettings.insulinSensitivities[insulinSensitivityName],
         pumpSettings,
