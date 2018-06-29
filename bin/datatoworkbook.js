@@ -849,7 +849,7 @@ function processDiaEvent(wb, indexes, diaEvent) {
 function dataToWorkbook(diaEvents, stream) {
   const wb = new Excel.stream.xlsx.WorkbookWriter({
     stream: stream,
-	  useStyles: true,
+    useStyles: true,
   });
 
   const indexes = {};
