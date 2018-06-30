@@ -847,7 +847,10 @@ function processDiaEvent(wb, indexes, diaEvent) {
 }
 
 function dataToWorkbook(diaEvents, stream) {
-  const wb = new Excel.Workbook();
+  const wb = new Excel.stream.xlsx.WorkbookWriter({
+    stream: stream,
+    useStyles: true,
+  });
 
   const indexes = {};
 
@@ -942,7 +945,7 @@ function dataToWorkbook(diaEvents, stream) {
   }
 
   // Return a Promise to the file write
-  return wb.xlsx.write(stream);
+  return wb.commit();
 }
 
 // FIXME: The following line should not be here.
