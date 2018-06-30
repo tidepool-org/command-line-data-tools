@@ -1,6 +1,6 @@
 {
   "name": "@tidepool/data-tools",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A toolkit for parsing Tidepool data, including command line utilities.",
   "main": "lib.js",
   "repository": {
