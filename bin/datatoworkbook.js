@@ -5,9 +5,10 @@
 
 const Excel = require('exceljs');
 const COL_HEADERS = require('../lib').COL_HEADERS;
+const JSONStream = require('JSONStream');
+const es = require('event-stream');
 
 const BG_CONVERSION = 18.01559;
-
 
 function processSmbgEvent(index, smbg) {
   smbg.units = 'mg/dL';
@@ -805,147 +806,182 @@ function processDeviceEvent(sheet, indexes, deviceEvent) {
   }
 }
 
-function processDiaEvent(wb, indexes, diaEvent) {
+function processDiaEvent(wb, diaEvent) {
   if (diaEvent.type === 'smbg') {
     const smbgSheet = wb.getWorksheet('smbg');
-    smbgSheet.addRow(processSmbgEvent(indexes.smbg.index, diaEvent)).commit();
-    indexes.smbg.index += 1;
+    smbgSheet.addRow(processSmbgEvent(wb.indexes.smbg.index, diaEvent)).commit();
+    wb.indexes.smbg.index += 1;
   } else if (diaEvent.type === 'cbg') {
     const cbgSheet = wb.getWorksheet('cgm');
-    cbgSheet.addRow(processCbgEvent(indexes.cbg.index, diaEvent)).commit();
-    indexes.cbg.index += 1;
+    cbgSheet.addRow(processCbgEvent(wb.indexes.cbg.index, diaEvent)).commit();
+    wb.indexes.cbg.index += 1;
   } else if (diaEvent.type === 'cgmSettings') {
     const cgmSettingsSheet = wb.getWorksheet('cgmSettings');
     cgmSettingsSheet.addRow(
-      processCgmSettingsEvent(indexes.cgmSettings.index, diaEvent)).commit();
-    indexes.cgmSettings.index += 1;
+      processCgmSettingsEvent(wb.indexes.cgmSettings.index, diaEvent)).commit();
+    wb.indexes.cgmSettings.index += 1;
   } else if (diaEvent.type === 'bolus') {
     const bolusSheet = wb.getWorksheet('bolus');
-    bolusSheet.addRow(processBolusEvent(indexes.bolus.index, diaEvent)).commit();
-    indexes.bolus.index += 1;
+    bolusSheet.addRow(processBolusEvent(wb.indexes.bolus.index, diaEvent)).commit();
+    wb.indexes.bolus.index += 1;
   } else if (diaEvent.type === 'basal') {
     const basalSheet = wb.getWorksheet('basal');
-    processBasalEvent(basalSheet, indexes, diaEvent);
+    processBasalEvent(basalSheet, wb.indexes, diaEvent);
   } else if (diaEvent.type === 'pumpSettings') {
-    processPumpSettingsEvent(wb, indexes, diaEvent);
+    processPumpSettingsEvent(wb, wb.indexes, diaEvent);
   } else if (diaEvent.type === 'bloodKetone') {
     const bloodKetoneSheet = wb.getWorksheet('bloodKetone');
     bloodKetoneSheet.addRow(
-      processBloodKetoneEvent(indexes.bloodKetone.index, diaEvent)).commit();
-    indexes.bloodKetone.index += 1;
+      processBloodKetoneEvent(wb.indexes.bloodKetone.index, diaEvent)).commit();
+    wb.indexes.bloodKetone.index += 1;
   } else if (diaEvent.type === 'wizard') {
     const wizardSheet = wb.getWorksheet('wizard');
-    wizardSheet.addRow(processWizardEvent(indexes.wizard.index, diaEvent)).commit();
-    indexes.wizard.index += 1;
+    wizardSheet.addRow(processWizardEvent(wb.indexes.wizard.index, diaEvent)).commit();
+    wb.indexes.wizard.index += 1;
   } else if (diaEvent.type === 'upload') {
     const uploadSheet = wb.getWorksheet('upload');
-    processUploadEvent(uploadSheet, indexes, diaEvent);
+    processUploadEvent(uploadSheet, wb.indexes, diaEvent);
   } else if (diaEvent.type === 'deviceEvent') {
     const deviceEventSheet = wb.getWorksheet('deviceEvent and suspend');
-    processDeviceEvent(deviceEventSheet, indexes, diaEvent);
+    processDeviceEvent(deviceEventSheet, wb.indexes, diaEvent);
   }
 }
 
-function dataToWorkbook(diaEvents, stream) {
-  const wb = new Excel.stream.xlsx.WorkbookWriter({
-    stream: stream,
-    useStyles: true,
-  });
+class TidepoolWorkbookWriter extends Excel.stream.xlsx.WorkbookWriter {
+  constructor(outputStream) {
+    const options = {
+      stream: outputStream,
+      useStyles: true,
+    };
+    super(options);
 
-  const indexes = {};
+    this.indexes = {};
+    const smbgSheet = this.addWorksheet('smbg');
+    smbgSheet.columns = COL_HEADERS.SMBG_COLS;
+    this.indexes.smbg = {
+      index: 1,
+    };
 
-  const smbgSheet = wb.addWorksheet('smbg');
-  smbgSheet.columns = COL_HEADERS.SMBG_COLS;
-  indexes.smbg = {
-    index: 1,
-  };
+    const cbgSheet = this.addWorksheet('cgm');
+    cbgSheet.columns = COL_HEADERS.CBG_COLS;
+    this.indexes.cbg = {
+      index: 1,
+    };
 
-  const cbgSheet = wb.addWorksheet('cgm');
-  cbgSheet.columns = COL_HEADERS.CBG_COLS;
-  indexes.cbg = {
-    index: 1,
-  };
+    const cgmSettingsSheet = this.addWorksheet('cgmSettings');
+    cgmSettingsSheet.columns = COL_HEADERS.CGM_SETTINGS_COLS;
+    this.indexes.cgmSettings = {
+      index: 1,
+    };
 
-  const cgmSettingsSheet = wb.addWorksheet('cgmSettings');
-  cgmSettingsSheet.columns = COL_HEADERS.CGM_SETTINGS_COLS;
-  indexes.cgmSettings = {
-    index: 1,
-  };
+    const bolusSheet = this.addWorksheet('bolus');
+    bolusSheet.columns = COL_HEADERS.BOLUS_COLS;
+    this.indexes.bolus = {
+      index: 1,
+    };
 
-  const bolusSheet = wb.addWorksheet('bolus');
-  bolusSheet.columns = COL_HEADERS.BOLUS_COLS;
-  indexes.bolus = {
-    index: 1,
-  };
+    const wizardSheet = this.addWorksheet('wizard');
+    wizardSheet.columns = COL_HEADERS.WIZARD_COLS;
+    this.indexes.wizard = {
+      index: 1,
+    };
 
-  const wizardSheet = wb.addWorksheet('wizard');
-  wizardSheet.columns = COL_HEADERS.WIZARD_COLS;
-  indexes.wizard = {
-    index: 1,
-  };
+    const basalSheet = this.addWorksheet('basal');
+    basalSheet.columns = COL_HEADERS.BASAL_COLS;
+    this.indexes.basal = {
+      index: 1,
+      group: 1,
+    };
 
-  const basalSheet = wb.addWorksheet('basal');
-  basalSheet.columns = COL_HEADERS.BASAL_COLS;
-  indexes.basal = {
-    index: 1,
-    group: 1,
-  };
+    const basalScheduleSheet = this.addWorksheet('basalSchedules');
+    basalScheduleSheet.columns = COL_HEADERS.BASAL_SCHEDULE_COLS;
+    this.indexes.basalSchedule = {
+      index: 1,
+      group: 1,
+    };
 
-  const basalScheduleSheet = wb.addWorksheet('basalSchedules');
-  basalScheduleSheet.columns = COL_HEADERS.BASAL_SCHEDULE_COLS;
-  indexes.basalSchedule = {
-    index: 1,
-    group: 1,
-  };
+    const bgTargetSheet = this.addWorksheet('bgTarget');
+    bgTargetSheet.columns = COL_HEADERS.BG_TARGET_COLS;
+    this.indexes.bgTarget = {
+      index: 1,
+      group: 1,
+    };
 
-  const bgTargetSheet = wb.addWorksheet('bgTarget');
-  bgTargetSheet.columns = COL_HEADERS.BG_TARGET_COLS;
-  indexes.bgTarget = {
-    index: 1,
-    group: 1,
-  };
+    const carbRatioSheet = this.addWorksheet('carbRatio');
+    carbRatioSheet.columns = COL_HEADERS.CARB_RATIO_COLS;
+    this.indexes.carbRatio = {
+      index: 1,
+      group: 1,
+    };
 
-  const carbRatioSheet = wb.addWorksheet('carbRatio');
-  carbRatioSheet.columns = COL_HEADERS.CARB_RATIO_COLS;
-  indexes.carbRatio = {
-    index: 1,
-    group: 1,
-  };
+    const insulinSensitivitySheet = this.addWorksheet('insulinSensitivity');
+    insulinSensitivitySheet.columns = COL_HEADERS.INSULIN_SENSITIVITY_COLS;
+    this.indexes.insulinSensitivity = {
+      index: 1,
+      group: 1,
+    };
 
-  const insulinSensitivitySheet = wb.addWorksheet('insulinSensitivity');
-  insulinSensitivitySheet.columns = COL_HEADERS.INSULIN_SENSITIVITY_COLS;
-  indexes.insulinSensitivity = {
-    index: 1,
-    group: 1,
-  };
+    const bloodKetoneSheet = this.addWorksheet('bloodKetone');
+    bloodKetoneSheet.columns = COL_HEADERS.BLOOD_KETONE_COLS;
+    this.indexes.bloodKetone = {
+      index: 1,
+    };
 
-  const bloodKetoneSheet = wb.addWorksheet('bloodKetone');
-  bloodKetoneSheet.columns = COL_HEADERS.BLOOD_KETONE_COLS;
-  indexes.bloodKetone = {
-    index: 1,
-  };
+    const uploadSheet = this.addWorksheet('upload');
+    uploadSheet.columns = COL_HEADERS.UPLOAD_COLS;
+    this.indexes.upload = {
+      index: 1,
+      group: 1,
+    };
 
-  const uploadSheet = wb.addWorksheet('upload');
-  uploadSheet.columns = COL_HEADERS.UPLOAD_COLS;
-  indexes.upload = {
-    index: 1,
-    group: 1,
-  };
+    const deviceEventSheet = this.addWorksheet('deviceEvent and suspend');
+    deviceEventSheet.columns = COL_HEADERS.DEVICE_EVENT_COLS;
+    this.indexes.deviceEvent = {
+      index: 1,
+      group: 1,
+    };
+  }
+}
 
-  const deviceEventSheet = wb.addWorksheet('deviceEvent and suspend');
-  deviceEventSheet.columns = COL_HEADERS.DEVICE_EVENT_COLS;
-  indexes.deviceEvent = {
-    index: 1,
-    group: 1,
-  };
+function dataToWorkbook(diaEvents, outStream) {
+  const wb = new TidepoolWorkbookWriter(outStream);
 
   // eslint-disable-next-line no-restricted-syntax
   for (const diaEvent of diaEvents) {
-    processDiaEvent(wb, indexes, diaEvent);
+    processDiaEvent(wb, diaEvent);
   }
 
   // Return a Promise to the file write
   return wb.commit();
+}
+
+function streamToWorkbook(inStream, outStream) {
+  return new Promise((resolve, reject) => {
+    const wb = new TidepoolWorkbookWriter(outStream);
+
+    const parser = JSONStream.parse('*');
+    inStream
+      .pipe(parser)
+      .pipe(es.mapSync((data) => {
+        processDiaEvent(wb, data);
+      }));
+
+    inStream.on('end', async () => {
+      await wb.commit();
+      delete this.wb;
+      resolve();
+    });
+
+    inStream.on('error', () => {
+      delete this.wb;
+      reject();
+    });
+
+    outStream.on('error', () => {
+      delete this.wb;
+      reject();
+    });
+  });
 }
 
 // FIXME: The following line should not be here.
@@ -955,8 +991,6 @@ if (require.main === module) {
   const program = require('commander');
   const fs = require('fs');
   const chalk = require('chalk');
-  const JSONStream = require('JSONStream');
-
 
   function makeInFileStream() {
     let ifs;
@@ -1222,3 +1256,4 @@ if (require.main === module) {
 /* eslint-enable global-require, no-inner-declarations */
 
 exports.dataToWorkbook = dataToWorkbook;
+exports.streamToWorkbook = streamToWorkbook;
